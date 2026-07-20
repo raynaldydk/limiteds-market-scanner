@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyRobuxSale, calculateAverageDailySales, calculateRobuxSell, clearCache, fetchCurrentRap, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
+import { applyRobuxSale, calculateAverageDailySales, calculateRobuxSell, clearCache, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
 
 test('scans all pages and calculates metrics', async () => {
   clearCache(); let calls = 0;
@@ -114,4 +114,20 @@ test('applies a Robux sale to balance and send-limit usage', () => {
   assert.equal(result.updatedAccount.sendLimitUsed, 3700);
   assert.equal(result.sale.price, 162000);
   assert.equal(result.sale.usernameSource, 'SourceUser');
+});
+
+test('calculates a limited purchase break-even and profit estimate', () => {
+  const purchase = createLimitedPurchase({ username:'Buyer', itemName:'Test Limited', rap:10000, purchasePrice:800000, rate:130, purchasedAt:'2026-07-20T12:00:00Z' }, new Date('2026-07-20T13:00:00Z'));
+  assert.equal(purchase.minimumRobuxSell, 6154);
+  assert.equal(purchase.robuxSell70, 7000);
+  assert.equal(purchase.estimatedRevenue, 910000);
+  assert.equal(purchase.profitEstimate, 110000);
+  assert.equal(purchase.purchasedAt, '2026-07-20T12:00:00.000Z');
+});
+
+test('looks up purchase RAP by exact item name', async () => {
+  const replies = [{data:[{id:42,name:'Test Hat',creatorName:'Roblox'}]},{CollectibleItemId:'collectible-42'},{recentAveragePrice:4321}];
+  let call = 0;
+  const result = await fetchCurrentRapByName('Test Hat', async () => ({ok:true,json:async()=>replies[call++]}));
+  assert.equal(result.rap, 4321);
 });
