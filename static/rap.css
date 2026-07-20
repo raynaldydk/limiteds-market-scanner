@@ -65,6 +65,12 @@ button {
   font-weight: 700;
 }
 
+.seller-id {
+  color: var(--muted);
+  font-size: 11px;
+  overflow-wrap: anywhere;
+}
+
 .value.negative-value {
   color: #a33131;
 }
@@ -130,17 +136,18 @@ html[data-theme="dark"] .value.negative-value {
   }
 
   th:nth-child(1) { width: 3%; }
-  th:nth-child(2) { width: 16%; }
-  th:nth-child(3) { width: 6%; }
-  th:nth-child(4),
-  th:nth-child(5) { width: 7.5%; }
-  th:nth-child(6),
+  th:nth-child(2) { width: 15%; }
+  th:nth-child(3) { width: 8%; }
+  th:nth-child(4) { width: 6%; }
+  th:nth-child(5),
+  th:nth-child(6) { width: 7%; }
   th:nth-child(7),
   th:nth-child(8),
   th:nth-child(9),
-  th:nth-child(10) { width: 9%; }
-  th:nth-child(11) { width: 9%; }
-  th:nth-child(12) { width: 6%; }
+  th:nth-child(10),
+  th:nth-child(11) { width: 8%; }
+  th:nth-child(12) { width: 9%; }
+  th:nth-child(13) { width: 5%; }
 }
 
 @media (max-width: 900px) {

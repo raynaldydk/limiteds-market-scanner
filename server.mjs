@@ -8,6 +8,7 @@ const API_URL = `${BASE_URL}/api/listings`;
 const ROOT = fileURLToPath(new URL('./static/', import.meta.url));
 const ACCOUNT_DATA_PATH = fileURLToPath(new URL('./data/accounts.json', import.meta.url));
 const ROBUX_SALES_PATH = fileURLToPath(new URL('./data/robux-sales.json', import.meta.url));
+const SELLER_MAP_PATH = fileURLToPath(new URL('./data/seller-map.json', import.meta.url));
 const CACHE_TTL = Number(process.env.CACHE_TTL_SECONDS || 30) * 1000;
 const cache = { at: 0, items: [] };
 const currencyCache = { at: 0, idrRate: null };
@@ -69,6 +70,28 @@ async function readRobuxSales() {
 async function writeRobuxSales(sales) {
   await mkdir(fileURLToPath(new URL('./data/', import.meta.url)), { recursive:true });
   await writeFile(ROBUX_SALES_PATH, `${JSON.stringify(sales, null, 2)}\n`, 'utf8');
+}
+
+async function applySellerMapping(items) {
+  let mapping = { nextId:1, sellers:{} };
+  try {
+    const saved = JSON.parse(await readFile(SELLER_MAP_PATH, 'utf8'));
+    if (saved?.sellers && Number.isInteger(saved.nextId)) mapping = saved;
+  } catch (error) { if (error.code !== 'ENOENT') throw error; }
+  let changed = false;
+  for (const item of items) {
+    const uuid = String(item.seller_id || '').trim();
+    if (!uuid) { item.seller_internal_id = null; continue; }
+    if (!mapping.sellers[uuid]) {
+      mapping.sellers[uuid] = mapping.nextId++;
+      changed = true;
+    }
+    item.seller_internal_id = mapping.sellers[uuid];
+  }
+  if (changed) {
+    await mkdir(fileURLToPath(new URL('./data/', import.meta.url)), { recursive:true });
+    await writeFile(SELLER_MAP_PATH, `${JSON.stringify(mapping, null, 2)}\n`, 'utf8');
+  }
 }
 
 export function applyRobuxSale(accounts, input, now = new Date()) {
@@ -266,6 +289,7 @@ export async function scanAll(force = false, fetcher = fetch, updateRap = true, 
     item.after_tax_idr = Math.round(price * idrRate * 1.053);
     item.listing_url = `${BASE_URL}/listing/${item.id || ''}`;
   }
+  if (fetcher === fetch) await applySellerMapping(items);
   if (updateRap) { queueRapUpdates(items); applyCurrentRap(items); }
   cache.at = now; cache.items = items;
   return { items, cached: false };

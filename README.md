@@ -44,6 +44,7 @@ The server binds to `127.0.0.1` by default.
 
 | Column | Formula or meaning |
 | --- | --- |
+| Seller | Persistent local label (`Seller 1`, `Seller 2`, and so on) mapped from LimitedsMarket's seller UUID |
 | Daily Sales (30d) | Roblox sales in the trailing 30 UTC days divided by 30 |
 | Roblox RAP | Current Roblox `recentAveragePrice` |
 | Robux Sell | `ROUND(0.7 x Roblox RAP)` |
