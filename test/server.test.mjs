@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { clearCache, fetchCurrentRap, scanAll } from '../server.mjs';
+import { calculateAverageDailySales, clearCache, fetchCurrentRap, scanAll } from '../server.mjs';
 
 test('scans all pages and calculates metrics', async () => {
   clearCache(); let calls = 0;
@@ -34,4 +34,14 @@ test('gets current RAP for the exact official Roblox asset', async () => {
   const result = await fetchCurrentRap('Test Hat', null, fetcher);
   assert.equal(result.assetId, 42); assert.equal(result.collectibleItemId, 'collectible-42');
   assert.equal(result.rap, 9876); assert.equal(result.status, 'current');
+});
+
+test('calculates trailing 30-day average daily sales', () => {
+  const now = Date.UTC(2026, 6, 20, 12);
+  const points = [
+    {date:'2026-07-20T00:00:00Z',value:1},
+    {date:'2026-07-01T00:00:00Z',value:2},
+    {date:'2026-06-20T00:00:00Z',value:99}
+  ];
+  assert.deepEqual(calculateAverageDailySales(points, now), {total:3, average:0.1});
 });

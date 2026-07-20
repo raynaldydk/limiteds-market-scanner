@@ -56,13 +56,28 @@ export async function fetchCurrentRap(name, existingAssetId = null, fetcher = fe
   }
   if (!collectibleItemId) return { assetId, collectibleItemId:null, rap:null, status:'unavailable', checkedAt:Date.now() };
   const resale = await fetchJson(`https://apis.roblox.com/marketplace-sales/v1/item/${collectibleItemId}/resale-data`, fetcher);
+  const sales = calculateAverageDailySales(resale.volumeDataPoints || []);
   return {
     assetId,
     collectibleItemId,
     rap: Number.isFinite(resale.recentAveragePrice) ? resale.recentAveragePrice : null,
+    sales30d: sales.total,
+    avgDailySales30d: sales.average,
     status: Number.isFinite(resale.recentAveragePrice) ? 'current' : 'unavailable',
     checkedAt: Date.now()
   };
+}
+
+export function calculateAverageDailySales(points, now = Date.now()) {
+  const dayMs = 86400000;
+  const todayUtc = Math.floor(now / dayMs) * dayMs;
+  const cutoff = todayUtc - 29 * dayMs;
+  const total = points.reduce((sum, point) => {
+    const date = Date.parse(point.date);
+    const value = Number(point.value);
+    return date >= cutoff && date <= todayUtc && Number.isFinite(value) ? sum + value : sum;
+  }, 0);
+  return { total, average: Math.round(total / 30 * 100) / 100 };
 }
 
 function queueRapUpdates(items) {
@@ -143,7 +158,9 @@ function applyCurrentRap(items) {
     item.roblox_asset_id = current?.assetId || null;
     item.roblox_collectible_item_id = current?.collectibleItemId || null;
     item.rap_checked_at = current?.checkedAt ? new Date(current.checkedAt).toISOString() : null;
-    item.idr_per_1k_rap = rap ? Math.round(item.price_idr * 1000 / rap) : null;
+    item.sales_30d = current?.sales30d ?? null;
+    item.avg_daily_sales_30d = current?.avgDailySales30d ?? null;
+    item.idr_per_1k_rap = rap ? Math.round(item.after_tax_idr * 1000 / rap) : null;
   }
 }
 

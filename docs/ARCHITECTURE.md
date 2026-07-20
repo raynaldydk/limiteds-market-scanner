@@ -71,7 +71,9 @@ The scanner preserves the listing fields received from Limiteds Market and adds:
 | `idr_rate` | number | IDR units per USD from Limiteds Market's currency endpoint |
 | `price_idr` | number | Rounded listing price converted to IDR |
 | `after_tax_idr` | number | Rounded IDR price after multiplying by `1.053` |
-| `idr_per_1k_rap` | number or `null` | IDR listing price per 1,000 current Roblox RAP |
+| `idr_per_1k_rap` | number or `null` | After-tax IDR price per 1,000 current Roblox RAP |
+| `sales_30d` | number or `null` | Total Roblox resale volume in the trailing 30 UTC calendar days |
+| `avg_daily_sales_30d` | number or `null` | `sales_30d ÷ 30`, rounded to two decimals |
 | `market_rap` | number | Original marketplace RAP retained for diagnostics only |
 | `rap` | number or `null` | Current Roblox `recentAveragePrice`; never falls back to `market_rap` |
 | `rap_status` | string | `queued`, `updating`, `current`, `unmatched`, `unavailable`, or `retrying` |
@@ -88,7 +90,8 @@ The browser keeps the latest response in memory and applies all search, category
 ```text
 item_name, category, idr_rate, price_idr, after_tax_idr,
 market_rap, rap, rap_status, rap_checked_at, roblox_asset_id,
-roblox_collectible_item_id, idr_per_1k_rap, created_at, listing_url
+roblox_collectible_item_id, sales_30d, avg_daily_sales_30d,
+idr_per_1k_rap, created_at, listing_url
 ```
 
 ## Security and operational notes

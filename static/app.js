@@ -64,19 +64,19 @@ function render() {
     <tr>
       <td class="rank">${i+1}</td>
       <td><div class="item"><img src="${escapeHtml(x.thumbnail_url)}" alt="" loading="lazy"><strong>${escapeHtml(x.item_name)}</strong></div></td>
-      <td><span class="category">${escapeHtml(x.category || 'Other')}</span></td>
+      <td class="num muted">${number(x.market_rap)}</td>
+      <td class="num">${x.rap == null ? `<span class="rap-state">${escapeHtml(x.rap_status)}</span>` : number(x.rap)}</td>
       <td class="num">${idr(x.price_idr)}</td>
       <td class="num price">${idr(x.after_tax_idr)}</td>
-      <td class="num muted">${number(x.market_rap)}</td>
-      <td class="num">${x.rap == null ? `<span class="rap-state">${escapeHtml(x.rap_status)}</span>` : `${number(x.rap)}<small class="rap-source">Roblox</small>`}</td>
       <td class="num value">${x.idr_per_1k_rap ? idr(x.idr_per_1k_rap) : '—'}</td>
       <td class="date">${formatDate(x.created_at)}</td>
+      <td class="num">${x.avg_daily_sales_30d == null ? '—' : x.avg_daily_sales_30d.toFixed(2)}</td>
       <td><a class="view" href="${escapeHtml(x.listing_url)}" target="_blank" rel="noopener">View ↗</a></td>
     </tr>`).join('');
 }
 
 function exportCsv() {
-  const cols = ['item_name','category','idr_rate','price_idr','after_tax_idr','market_rap','rap','rap_status','rap_checked_at','roblox_asset_id','roblox_collectible_item_id','idr_per_1k_rap','created_at','listing_url'];
+  const cols = ['item_name','category','idr_rate','price_idr','after_tax_idr','market_rap','rap','sales_30d','avg_daily_sales_30d','rap_status','rap_checked_at','roblox_asset_id','roblox_collectible_item_id','idr_per_1k_rap','created_at','listing_url'];
   const quote = v => `"${String(v ?? '').replaceAll('"','""')}"`;
   const csv = [cols.join(','), ...visibleItems.map(x => cols.map(c => quote(x[c])).join(','))].join('\r\n');
   const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
