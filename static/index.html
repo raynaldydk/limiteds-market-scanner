@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Limiteds Market Scanner</title>
   <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/rap.css">
 </head>
 <body>
   <main>
@@ -15,28 +16,32 @@
 
     <section class="report-meta">
       <div><span>Listings</span><b id="total">—</b></div>
-      <div><span>Best USD / 1K RAP</span><b id="best">—</b></div>
-      <div><span>Combined RAP</span><b id="rap">—</b></div>
+      <div><span>Best IDR / 1K RAP</span><b id="best">—</b></div>
+      <div><span>Combined current RAP</span><b id="rap">—</b></div>
       <div><span>Generated</span><b id="last">—</b><small id="status">connecting</small></div>
     </section>
 
     <section class="toolbar">
       <input id="search" type="search" placeholder="Search item name…">
       <select id="category"><option value="">All categories</option></select>
-      <label>Max $ <input id="maxPrice" type="number" min="0" step="1" placeholder="Any"></label>
+      <label>Max IDR <input id="maxPrice" type="number" min="0" step="100000" placeholder="Any"></label>
       <label>Min RAP <input id="minRap" type="number" min="0" step="1000" placeholder="Any"></label>
+      <label>Min Daily Sales <input id="minDailySales" type="number" min="0" step="1" placeholder="Any"></label>
       <select id="sort">
         <option value="value">Best value</option><option value="priceAsc">Price: low to high</option>
         <option value="priceDesc">Price: high to low</option><option value="rapDesc">RAP: high to low</option>
         <option value="newest">Newest</option>
       </select>
+      <label>Robux Sell Rate
+        <select id="sellRate"><option value="130" selected>130</option><option value="135">135</option><option value="140">140</option></select>
+      </label>
       <button id="export" class="secondary">Export CSV</button>
     </section>
 
     <div class="table-heading"><h2>Active listings</h2><p id="resultCount" class="result-count"></p></div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Item</th><th>Category</th><th class="num">Price</th><th class="num">RAP</th><th class="num">USD / 1K RAP</th><th class="num">RAP / USD</th><th>Seller</th><th>Listed</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th>Item</th><th class="num">Daily Sales (30d)</th><th class="num">Roblox RAP</th><th class="num">Robux Sell</th><th class="num">Price IDR</th><th class="num">IDR / 1K RAP</th><th class="num">Robux Sell IDR</th><th class="num">Profit</th><th class="num">Profit / Cost</th><th>Listed</th><th></th></tr></thead>
         <tbody id="grid"></tbody>
       </table>
     </div>

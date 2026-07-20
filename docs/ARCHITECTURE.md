@@ -9,9 +9,10 @@ Browser report
     │ GET /api/scan
     ▼
 Node HTTP server
-    │ paginated GET /api/listings
-    ▼
-Limiteds Market public endpoint
+    ├── paginated GET /api/listings → Limiteds Market
+    ├── exact-name catalog search  → Roblox Catalog
+    ├── collectible ID by asset ID → Roblox Economy
+    └── resale data by collectible → Roblox Marketplace Sales
 ```
 
 No listing data is stored on disk. The server keeps one snapshot in memory for the configured cache period.
@@ -22,11 +23,13 @@ No listing data is stored on disk. The server keeps one snapshot in memory for t
 2. The server returns its in-memory snapshot when it is less than `CACHE_TTL_SECONDS` old.
 3. Otherwise, the server requests pages of 40 listings from Limiteds Market.
 4. Pagination continues until the reported `totalPages` value is reached.
-5. Each item name is trimmed and report metrics and the original listing URL are added.
-6. The normalized collection is cached and returned to the browser.
-7. Browser-side filters and sorting operate on this complete snapshot without further network calls.
+5. Each item name is trimmed and queued for exact Roblox asset resolution.
+6. The report is returned immediately with unresolved RAP rows marked `updating`.
+7. A throttled background worker processes unique item names in ascending order of their cheapest USD listing, accepts only exact-name results created by the official Roblox account, resolves its migrated `CollectibleItemId`, then requests `recentAveragePrice` from Roblox Marketplace Sales.
+8. The browser polls the local report while work remains and fills current RAP progressively.
+9. Browser-side filters and sorting operate on each updated snapshot.
 
-The report's **Refresh report** action requests `/api/scan?refresh=1`, which deliberately bypasses the snapshot cache.
+The report's **Refresh report** action requests `/api/scan?refresh=1`, which bypasses the market snapshot cache and expires confirmed Roblox RAP values. Previously resolved asset and collectible IDs are reused, so refreshes need only the Marketplace Sales request.
 
 ## Local endpoint
 
@@ -64,9 +67,22 @@ The scanner preserves the listing fields received from Limiteds Market and adds:
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `usd_per_1k_rap` | number or `null` | Listing USD price per 1,000 RAP |
-| `rap_per_usd` | number or `null` | RAP represented by one USD of listing price |
 | `listing_url` | string | Original Limiteds Market listing URL |
+| `idr_rate` | number | IDR units per USD from Limiteds Market's currency endpoint |
+| `price_idr` | number | Rounded listing price converted to IDR |
+| `after_tax_idr` | number | Rounded IDR price after multiplying by `1.053` |
+| `idr_per_1k_rap` | number or `null` | After-tax IDR price per 1,000 current Roblox RAP |
+| `sales_30d` | number or `null` | Total Roblox resale volume in the trailing 30 UTC calendar days |
+| `avg_daily_sales_30d` | number or `null` | `sales_30d ÷ 30`, rounded to two decimals |
+| `robux_sell` | number or `null` | `ROUND(0.7 × current Roblox RAP)` |
+| `market_rap` | number | Original marketplace RAP retained for diagnostics only |
+| `rap` | number or `null` | Current Roblox `recentAveragePrice`; never falls back to `market_rap` |
+| `rap_status` | string | `queued`, `updating`, `current`, `unmatched`, `unavailable`, or `retrying` |
+| `rap_checked_at` | string or `null` | ISO timestamp of the Roblox lookup |
+| `roblox_asset_id` | number or `null` | Exact official Roblox catalog asset ID |
+| `roblox_collectible_item_id` | string or `null` | Migrated collectible identifier used by Marketplace Sales |
+| `rolimons_url` | string or `null` | Rolimon's public item-page URL built from the resolved asset ID |
+| `roblox_url` | string or `null` | Roblox catalog detail URL built from the resolved asset ID |
 
 Metrics are `null` when their divisor is zero. They are presentation aids, not financial advice or estimates of future sale value.
 
@@ -74,9 +90,14 @@ Metrics are `null` when their divisor is zero. They are presentation aids, not f
 
 The browser keeps the latest response in memory and applies all search, category, price, RAP, and sort controls locally. CSV export includes only the currently filtered rows and uses these columns:
 
+The selected Robux Sell Rate (130, 135, or 140 IDR) is applied in the browser. `robux_sell_idr = robux_sell × rate`, `profit_idr = robux_sell_idr − after_tax_idr`, and `profit_cost_ratio = (profit_idr ÷ after_tax_idr) × 100`. Changing the selector re-renders all rows immediately.
+
 ```text
-item_name, category, price_usd, rap, usd_per_1k_rap,
-rap_per_usd, is_verified_seller, created_at, listing_url
+item_name, category, idr_rate, price_idr, after_tax_idr,
+market_rap, rap, robux_sell, robux_sell_rate, robux_sell_idr,
+profit_idr, profit_cost_ratio, rap_status, rap_checked_at, roblox_asset_id,
+roblox_collectible_item_id, sales_30d, avg_daily_sales_30d,
+idr_per_1k_rap, created_at, listing_url, roblox_url, rolimons_url
 ```
 
 ## Security and operational notes
@@ -84,6 +105,8 @@ rap_per_usd, is_verified_seller, created_at, listing_url
 - The server binds to loopback (`127.0.0.1`) and is intended for local use.
 - Static paths are normalized before files are read from the `static` directory.
 - Upstream requests have a 20-second timeout and identify the application with a user-agent.
+- Roblox lookups run sequentially with delay and exponential retry to respect rate limits.
+- Confirmed RAP values are refreshed after `RAP_TTL_SECONDS` (five minutes by default).
 - API responses use `Cache-Control: no-store`; static files use `no-cache` during local development.
 - There is no authentication because the server is not exposed beyond the local machine by default.
 - The upstream endpoint is not controlled by this project and may change without notice.

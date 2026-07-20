@@ -1,11 +1,11 @@
 let allItems = [];
 let visibleItems = [];
+let rapPollTimer = null;
 const $ = id => document.getElementById(id);
-const money = n => new Intl.NumberFormat('en-US', {style:'currency', currency:'USD'}).format(n);
 const number = n => new Intl.NumberFormat('en-US').format(n);
 
-async function scan(force = false) {
-  $('scan').disabled = true; $('scan').textContent = 'Scanning…'; $('status').textContent = 'reading every page';
+async function scan(force = false, silent = false) {
+  if (!silent) { $('scan').disabled = true; $('scan').textContent = 'Scanning…'; $('status').textContent = 'reading every page'; }
   try {
     const response = await fetch(`/api/scan${force ? '?refresh=1' : ''}`);
     const data = await response.json();
@@ -14,11 +14,12 @@ async function scan(force = false) {
     populateCategories();
     updateStats(data);
     render();
+    scheduleRapPoll();
   } catch (error) {
     $('status').textContent = error.message;
-    $('grid').innerHTML = `<tr><td colspan="10" class="error">${escapeHtml(error.message)} — check your connection and try again.</td></tr>`;
+    $('grid').innerHTML = `<tr><td colspan="12" class="error">${escapeHtml(error.message)} — check your connection and try again.</td></tr>`;
   } finally {
-    $('scan').disabled = false; $('scan').textContent = '↻ Scan market';
+    if (!silent) { $('scan').disabled = false; $('scan').textContent = 'Refresh report'; }
   }
 }
 
@@ -30,12 +31,20 @@ function populateCategories() {
 }
 
 function updateStats(data) {
-  const best = allItems.filter(x => x.usd_per_1k_rap).sort((a,b) => a.usd_per_1k_rap-b.usd_per_1k_rap)[0];
+  const best = allItems.filter(x => x.idr_per_1k_rap).sort((a,b) => a.idr_per_1k_rap-b.idr_per_1k_rap)[0];
   $('total').textContent = number(data.total);
-  $('best').textContent = best ? money(best.usd_per_1k_rap) : '—';
+  $('best').textContent = best ? idr(best.idr_per_1k_rap) : '—';
   $('rap').textContent = compact(allItems.reduce((sum,x) => sum + (x.rap || 0), 0));
   $('last').textContent = new Date(data.scanned_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  $('status').textContent = `${data.cached ? 'cached' : 'fresh'} · ${data.duration_ms}ms`;
+  const current = allItems.filter(x => x.rap_status === 'current').length;
+  $('status').textContent = `${current}/${allItems.length} current RAP · ${data.cached ? 'cached' : 'fresh'}`;
+}
+
+function scheduleRapPoll() {
+  clearTimeout(rapPollTimer);
+  if (allItems.some(x => ['queued','updating','retrying'].includes(x.rap_status))) {
+    rapPollTimer = setTimeout(() => scan(false, true), 4000);
+  }
 }
 
 function render() {
@@ -43,37 +52,48 @@ function render() {
   const category = $('category').value;
   const maxPrice = Number($('maxPrice').value) || Infinity;
   const minRap = Number($('minRap').value) || 0;
-  visibleItems = allItems.filter(x => x.item_name.toLowerCase().includes(q) && (!category || x.category === category) && x.price_usd <= maxPrice && x.rap >= minRap);
+  const minDailySales = Number($('minDailySales').value) || 0;
+  visibleItems = allItems.filter(x => x.item_name.toLowerCase().includes(q) && (!category || x.category === category) && x.price_idr <= maxPrice && x.rap >= minRap && (x.avg_daily_sales_30d ?? 0) >= minDailySales);
   const sorts = {
-    value:(a,b)=>(a.usd_per_1k_rap??Infinity)-(b.usd_per_1k_rap??Infinity), priceAsc:(a,b)=>a.price_usd-b.price_usd,
-    priceDesc:(a,b)=>b.price_usd-a.price_usd, rapDesc:(a,b)=>b.rap-a.rap, newest:(a,b)=>new Date(b.created_at)-new Date(a.created_at)
+    value:(a,b)=>(a.idr_per_1k_rap??Infinity)-(b.idr_per_1k_rap??Infinity), priceAsc:(a,b)=>a.price_idr-b.price_idr,
+    priceDesc:(a,b)=>b.price_idr-a.price_idr, rapDesc:(a,b)=>b.rap-a.rap, newest:(a,b)=>new Date(b.created_at)-new Date(a.created_at)
   };
   visibleItems.sort(sorts[$('sort').value]);
+  const sellRate = Number($('sellRate').value);
   $('resultCount').textContent = `Showing ${visibleItems.length} of ${allItems.length} listings`;
   $('empty').hidden = visibleItems.length > 0;
   $('grid').innerHTML = visibleItems.map((x,i) => `
     <tr>
       <td class="rank">${i+1}</td>
-      <td><div class="item"><img src="${escapeHtml(x.thumbnail_url)}" alt="" loading="lazy"><strong>${escapeHtml(x.item_name)}</strong></div></td>
-      <td><span class="category">${escapeHtml(x.category || 'Other')}</span></td>
-      <td class="num price">${money(x.price_usd)}</td>
-      <td class="num">${number(x.rap)}</td>
-      <td class="num value">${x.usd_per_1k_rap ? money(x.usd_per_1k_rap) : '—'}</td>
-      <td class="num muted">${x.rap_per_usd ? number(x.rap_per_usd) : '—'}</td>
-      <td>${x.is_verified_seller ? '<span class="verified">Verified</span>' : '<span class="muted">Standard</span>'}</td>
-      <td class="date">${new Date(x.created_at).toLocaleDateString()}</td>
-      <td><a class="view" href="${escapeHtml(x.listing_url)}" target="_blank" rel="noopener">View ↗</a></td>
+      <td><div class="item"><img src="${escapeHtml(x.thumbnail_url)}" alt="" loading="lazy"><div class="item-title">${x.roblox_url ? `<a class="item-name" href="${escapeHtml(x.roblox_url)}" target="_blank" rel="noopener">${escapeHtml(x.item_name)}</a>` : `<strong>${escapeHtml(x.item_name)}</strong>`}${x.rolimons_url ? `<a class="rolimons-link" href="${escapeHtml(x.rolimons_url)}" target="_blank" rel="noopener" title="Open on Rolimon's"><img src="https://www.rolimons.com/favicon.ico" alt="Rolimon's">↗</a>` : ''}</div></div></td>
+      <td class="num">${x.avg_daily_sales_30d == null ? '—' : x.avg_daily_sales_30d.toFixed(2)}</td>
+      <td class="num">${x.rap == null ? `<span class="rap-state">${escapeHtml(x.rap_status)}</span>` : number(x.rap)}</td>
+      <td class="num">${x.robux_sell == null ? '—' : number(x.robux_sell)}</td>
+      <td class="num price">${idr(x.after_tax_idr)}</td>
+      <td class="num value">${x.idr_per_1k_rap ? idr(x.idr_per_1k_rap) : '—'}</td>
+      <td class="num">${x.robux_sell == null ? '—' : idr(x.robux_sell * sellRate)}</td>
+      <td class="num profit ${x.robux_sell != null && x.robux_sell * sellRate - x.after_tax_idr >= 0 ? 'positive' : 'negative'}">${x.robux_sell == null ? '—' : idr(x.robux_sell * sellRate - x.after_tax_idr)}</td>
+      <td class="num profit ${x.robux_sell != null && x.robux_sell * sellRate - x.after_tax_idr >= 0 ? 'positive' : 'negative'}">${x.robux_sell == null || !x.after_tax_idr ? '—' : `${((x.robux_sell * sellRate - x.after_tax_idr) / x.after_tax_idr * 100).toFixed(2)}%`}</td>
+      <td class="date">${formatDate(x.created_at)}</td>
+      <td><a class="view" href="${escapeHtml(x.listing_url)}" target="_blank" rel="noopener">Listing ↗</a></td>
     </tr>`).join('');
 }
 
 function exportCsv() {
-  const cols = ['item_name','category','price_usd','rap','usd_per_1k_rap','rap_per_usd','is_verified_seller','created_at','listing_url'];
+  const cols = ['item_name','category','idr_rate','price_idr','after_tax_idr','market_rap','rap','robux_sell','robux_sell_rate','robux_sell_idr','profit_idr','profit_cost_ratio','sales_30d','avg_daily_sales_30d','rap_status','rap_checked_at','roblox_asset_id','roblox_collectible_item_id','idr_per_1k_rap','created_at','listing_url','roblox_url','rolimons_url'];
+  const sellRate = Number($('sellRate').value);
+  const rows = visibleItems.map(x => { const profit = x.robux_sell == null ? null : x.robux_sell*sellRate-x.after_tax_idr; return {...x, robux_sell_rate:sellRate, robux_sell_idr:x.robux_sell == null ? null : x.robux_sell*sellRate, profit_idr:profit, profit_cost_ratio:profit == null || !x.after_tax_idr ? null : Math.round(profit/x.after_tax_idr*10000)/100}; });
   const quote = v => `"${String(v ?? '').replaceAll('"','""')}"`;
-  const csv = [cols.join(','), ...visibleItems.map(x => cols.map(c => quote(x[c])).join(','))].join('\r\n');
+  const csv = [cols.join(','), ...rows.map(x => cols.map(c => quote(x[c])).join(','))].join('\r\n');
   const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
   link.download = `limiteds-market-${new Date().toISOString().slice(0,10)}.csv`; link.click(); URL.revokeObjectURL(link.href);
 }
 function compact(n) { return Intl.NumberFormat('en', {notation:'compact', maximumFractionDigits:1}).format(n); }
+function idr(n) { return new Intl.NumberFormat('id-ID', {style:'currency', currency:'IDR', maximumFractionDigits:0}).format(n); }
+function formatDate(value) {
+  const date = new Date(value), pad = n => String(n).padStart(2, '0');
+  return `${pad(date.getDate())}/${pad(date.getMonth()+1)}/${date.getFullYear()}<br>${pad(date.getHours())}.${pad(date.getMinutes())}.${pad(date.getSeconds())}`;
+}
 function escapeHtml(v) { const d=document.createElement('div'); d.textContent=String(v??''); return d.innerHTML; }
-['search','category','maxPrice','minRap','sort'].forEach(id => $(id).addEventListener(id==='search'?'input':'change', render));
+['search','category','maxPrice','minRap','minDailySales','sort','sellRate'].forEach(id => $(id).addEventListener(id==='search'?'input':'change', render));
 $('scan').addEventListener('click', () => scan(true)); $('export').addEventListener('click', exportCsv); scan();
