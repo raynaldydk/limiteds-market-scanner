@@ -2,7 +2,7 @@
 
 A dependency-free local report that scans every active Roblox Limited listing from Limiteds Market's public listings endpoint.
 
-The application collects all result pages on the server, calculates price-to-RAP metrics, and presents the listings in a searchable report table. It does not require an account, cookies, browser automation, or third-party packages.
+The application collects all result pages on the server, resolves each exact official Roblox asset, retrieves its current RAP from Roblox, calculates price-to-RAP metrics, and presents the listings in a searchable report table. It does not require an account, cookies, browser automation, or third-party packages.
 
 ## Requirements
 
@@ -24,7 +24,9 @@ On shells where the `npm` script shim is enabled, `npm start` works as well. The
 - Fetches every paginated listing, not only the first page
 - Search and filter by category, maximum price, and minimum RAP
 - Sort by value, price, RAP, or listing age
-- Computes USD per 1,000 RAP and RAP per USD
+- Retrieves current RAP from Roblox's migrated Marketplace Sales endpoint
+- Resolves exact names only when the creator is the official `Roblox` account
+- Computes USD per 1,000 current RAP and RAP per USD
 - CSV export of the current filtered view
 - Direct links to the original listings
 - No credentials, cookies, browser automation, or third-party Python packages
@@ -34,7 +36,7 @@ On shells where the `npm` script shim is enabled, `npm start` works as well. The
 | Column | Meaning |
 | --- | --- |
 | Price | Listing price in USD |
-| RAP | Value/RAP supplied by Limiteds Market |
+| Current RAP | `recentAveragePrice` supplied by Roblox's economy endpoint |
 | USD / 1K RAP | `price_usd × 1,000 ÷ RAP`; lower values represent more RAP per dollar |
 | RAP / USD | `RAP ÷ price_usd`; higher values represent more RAP per dollar |
 | Seller | Verified or standard seller status |
@@ -46,6 +48,7 @@ On shells where the `npm` script shim is enabled, `npm start` works as well. The
 | --- | ---: | --- |
 | `PORT` | `8000` | Local HTTP port |
 | `CACHE_TTL_SECONDS` | `30` | Time before the server fetches a fresh market snapshot |
+| `RAP_TTL_SECONDS` | `300` | Time before a confirmed Roblox RAP is refreshed |
 
 Example:
 
@@ -80,6 +83,7 @@ server.mjs              HTTP server, upstream scanner, cache, derived metrics
 static/index.html       Report markup
 static/app.js           Filters, sorting, rendering, and CSV export
 static/styles.css       Responsive report styling
+static/rap.css          Current-RAP status styling
 test/server.test.mjs    Scanner pagination and cache tests
 docs/ARCHITECTURE.md    Architecture, API schema, and operational notes
 ```

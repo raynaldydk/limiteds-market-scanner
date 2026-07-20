@@ -1,11 +1,12 @@
 let allItems = [];
 let visibleItems = [];
+let rapPollTimer = null;
 const $ = id => document.getElementById(id);
 const money = n => new Intl.NumberFormat('en-US', {style:'currency', currency:'USD'}).format(n);
 const number = n => new Intl.NumberFormat('en-US').format(n);
 
-async function scan(force = false) {
-  $('scan').disabled = true; $('scan').textContent = 'Scanning…'; $('status').textContent = 'reading every page';
+async function scan(force = false, silent = false) {
+  if (!silent) { $('scan').disabled = true; $('scan').textContent = 'Scanning…'; $('status').textContent = 'reading every page'; }
   try {
     const response = await fetch(`/api/scan${force ? '?refresh=1' : ''}`);
     const data = await response.json();
@@ -14,11 +15,12 @@ async function scan(force = false) {
     populateCategories();
     updateStats(data);
     render();
+    scheduleRapPoll();
   } catch (error) {
     $('status').textContent = error.message;
     $('grid').innerHTML = `<tr><td colspan="10" class="error">${escapeHtml(error.message)} — check your connection and try again.</td></tr>`;
   } finally {
-    $('scan').disabled = false; $('scan').textContent = '↻ Scan market';
+    if (!silent) { $('scan').disabled = false; $('scan').textContent = 'Refresh report'; }
   }
 }
 
@@ -35,7 +37,15 @@ function updateStats(data) {
   $('best').textContent = best ? money(best.usd_per_1k_rap) : '—';
   $('rap').textContent = compact(allItems.reduce((sum,x) => sum + (x.rap || 0), 0));
   $('last').textContent = new Date(data.scanned_at).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-  $('status').textContent = `${data.cached ? 'cached' : 'fresh'} · ${data.duration_ms}ms`;
+  const current = allItems.filter(x => x.rap_status === 'current').length;
+  $('status').textContent = `${current}/${allItems.length} current RAP · ${data.cached ? 'cached' : 'fresh'}`;
+}
+
+function scheduleRapPoll() {
+  clearTimeout(rapPollTimer);
+  if (allItems.some(x => ['queued','updating','retrying'].includes(x.rap_status))) {
+    rapPollTimer = setTimeout(() => scan(false, true), 4000);
+  }
 }
 
 function render() {
@@ -57,7 +67,7 @@ function render() {
       <td><div class="item"><img src="${escapeHtml(x.thumbnail_url)}" alt="" loading="lazy"><strong>${escapeHtml(x.item_name)}</strong></div></td>
       <td><span class="category">${escapeHtml(x.category || 'Other')}</span></td>
       <td class="num price">${money(x.price_usd)}</td>
-      <td class="num">${number(x.rap)}</td>
+      <td class="num">${x.rap == null ? `<span class="rap-state">${escapeHtml(x.rap_status)}</span>` : `${number(x.rap)}<small class="rap-source">Roblox</small>`}</td>
       <td class="num value">${x.usd_per_1k_rap ? money(x.usd_per_1k_rap) : '—'}</td>
       <td class="num muted">${x.rap_per_usd ? number(x.rap_per_usd) : '—'}</td>
       <td>${x.is_verified_seller ? '<span class="verified">Verified</span>' : '<span class="muted">Standard</span>'}</td>
@@ -67,7 +77,7 @@ function render() {
 }
 
 function exportCsv() {
-  const cols = ['item_name','category','price_usd','rap','usd_per_1k_rap','rap_per_usd','is_verified_seller','created_at','listing_url'];
+  const cols = ['item_name','category','price_usd','rap','rap_status','rap_checked_at','roblox_asset_id','roblox_collectible_item_id','usd_per_1k_rap','rap_per_usd','is_verified_seller','created_at','listing_url'];
   const quote = v => `"${String(v ?? '').replaceAll('"','""')}"`;
   const csv = [cols.join(','), ...visibleItems.map(x => cols.map(c => quote(x[c])).join(','))].join('\r\n');
   const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));

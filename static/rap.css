@@ -1,0 +1,13 @@
+.rap-source {
+  display: block;
+  margin-top: 2px;
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: normal;
+}
+
+.rap-state {
+  color: var(--muted);
+  font-size: 10px;
+  text-transform: capitalize;
+}
