@@ -70,7 +70,7 @@ function render() {
       <td class="num">${x.rap == null ? `<span class="rap-state">${escapeHtml(x.rap_status)}</span>` : number(x.rap)}</td>
       <td class="num">${x.robux_sell == null ? '—' : number(x.robux_sell)}</td>
       <td class="num price">${idr(x.after_tax_idr)}</td>
-      <td class="num value">${x.idr_per_1k_rap ? idr(x.idr_per_1k_rap) : '—'}</td>
+      <td class="num value ${x.robux_sell != null && x.robux_sell * sellRate - x.after_tax_idr < 0 ? 'negative-value' : ''}">${x.idr_per_1k_rap ? idr(x.idr_per_1k_rap) : '—'}</td>
       <td class="num">${x.robux_sell == null ? '—' : idr(x.robux_sell * sellRate)}</td>
       <td class="num profit ${x.robux_sell != null && x.robux_sell * sellRate - x.after_tax_idr >= 0 ? 'positive' : 'negative'}">${x.robux_sell == null ? '—' : idr(x.robux_sell * sellRate - x.after_tax_idr)}</td>
       <td class="num profit ${x.robux_sell != null && x.robux_sell * sellRate - x.after_tax_idr >= 0 ? 'positive' : 'negative'}">${x.robux_sell == null || !x.after_tax_idr ? '—' : `${((x.robux_sell * sellRate - x.after_tax_idr) / x.after_tax_idr * 100).toFixed(2)}%`}</td>
