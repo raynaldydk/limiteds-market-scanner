@@ -30,7 +30,7 @@ Static pages:
 4. Pagination continues until the reported `totalPages` value is reached.
 5. Each item name is trimmed and queued for exact Roblox asset resolution.
 6. The report is returned immediately with unresolved RAP rows marked `updating`.
-7. A throttled background worker processes unique item names in ascending order of their cheapest USD listing, accepts only exact-name results created by the official Roblox account, resolves its migrated `CollectibleItemId`, then requests `recentAveragePrice` from Roblox Marketplace Sales.
+7. A throttled background worker processes unique item names in ascending order of their cheapest USD listing, accepts only exact-name results created by the official Roblox account, resolves its migrated `CollectibleItemId`, then requests `recentAveragePrice` from Roblox Marketplace Sales. Listings categorized as `Face` use creator-filtered catalog search v2 because v1 can omit exact migrated results, open the official replacement Dynamic Head bundle, and read the collectible ID from the bundle because migrated legacy face assets no longer expose one.
 8. The browser polls the local report while work remains and fills current RAP progressively.
 9. Browser-side filters and sorting operate on each updated snapshot.
 
@@ -85,9 +85,10 @@ The scanner preserves the listing fields received from Limiteds Market and adds:
 | `rap_status` | string | `queued`, `updating`, `current`, `unmatched`, `unavailable`, or `retrying` |
 | `rap_checked_at` | string or `null` | ISO timestamp of the Roblox lookup |
 | `roblox_asset_id` | number or `null` | Exact official Roblox catalog asset ID |
+| `roblox_bundle_id` | number or `null` | Official migrated Dynamic Head bundle ID for Face listings |
 | `roblox_collectible_item_id` | string or `null` | Migrated collectible identifier used by Marketplace Sales |
-| `rolimons_url` | string or `null` | Rolimon's public item-page URL built from the resolved asset ID |
-| `roblox_url` | string or `null` | Roblox catalog detail URL built from the resolved asset ID |
+| `rolimons_url` | string or `null` | Rolimon's bundle URL for migrated Faces, otherwise an item URL built from the asset ID |
+| `roblox_url` | string or `null` | Roblox bundle URL for migrated Faces, otherwise a catalog detail URL built from the asset ID |
 
 Metrics are `null` when their divisor is zero. They are presentation aids, not financial advice or estimates of future sale value.
 

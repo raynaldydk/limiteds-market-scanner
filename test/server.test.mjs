@@ -36,6 +36,44 @@ test('gets current RAP for the exact official Roblox asset', async () => {
   assert.equal(result.rap, 9876); assert.equal(result.status, 'current');
 });
 
+test('uses an official-Roblox catalog search for face RAP lookup', async () => {
+  const urls = [];
+  const replies = [
+    {data:[
+      {id:999,itemType:'Asset',assetType:42,name:'Playful Vampire',creatorName:'Copy Group'},
+      {id:2409285794,itemType:'Asset',assetType:18,name:'Playful Vampire',creatorName:'Roblox'}
+    ]},
+    {CollectibleItemId:'face-collectible'},
+    {recentAveragePrice:76543,volumeDataPoints:[]}
+  ];
+  let call = 0;
+  const fetcher = async url => { urls.push(url); return {ok:true,json:async()=>replies[call++]}; };
+  const result = await fetchCurrentRap('Playful Vampire', null, fetcher, null, 'Face');
+  assert.match(urls[0], /\/v2\/search\/items\/details/);
+  assert.match(urls[0], /CreatorName=Roblox/);
+  assert.equal(result.assetId, 2409285794);
+  assert.equal(result.rap, 76543);
+});
+
+test('falls back from a classic face to its official dynamic-head bundle', async () => {
+  const urls = [];
+  const replies = [
+    {data:[{id:555,itemType:'Bundle',name:'Playful Vampire',creatorName:'Roblox'}]},
+    {items:[{id:777,type:'Asset',name:'Playful Vampire Head'},{id:778,type:'Asset',name:'Playful Vampire Mood'}],collectibleItemDetail:{collectibleItemId:'dynamic-face-collectible'}},
+    {recentAveragePrice:81234,volumeDataPoints:[]}
+  ];
+  let call = 0;
+  const fetcher = async url => { urls.push(url); return {ok:true,json:async()=>replies[call++]}; };
+  const result = await fetchCurrentRap('Playful Vampire', null, fetcher, null, 'Face');
+  assert.match(urls[0], /\/v2\/search\/items\/details/);
+  assert.match(urls[0], /CreatorName=Roblox/);
+  assert.match(urls[1], /\/v1\/bundles\/555\/details/);
+  assert.equal(result.assetId, 777);
+  assert.equal(result.bundleId, 555);
+  assert.equal(result.collectibleItemId, 'dynamic-face-collectible');
+  assert.equal(result.rap, 81234);
+});
+
 test('calculates trailing 30-day average daily sales', () => {
   const now = Date.UTC(2026, 6, 20, 12);
   const points = [
