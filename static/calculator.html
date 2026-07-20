@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Calculator | Limiteds Market Scanner</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/rap.css">
+  <link rel="stylesheet" href="/calculator.css">
+</head>
+<body class="calculator-page">
+  <main>
+    <nav class="page-nav" aria-label="Main navigation">
+      <a href="/">Scan &amp; Analysis</a>
+      <a class="active" href="/calculator.html">Calculator</a>
+    </nav>
+
+    <header>
+      <div><p class="eyebrow">VALUE TOOL</p><h1>Calculator</h1><p class="subtitle">Estimate purchase cost, sale proceeds, and profit from current RAP.</p></div>
+    </header>
+
+    <section class="calculator-layout">
+      <form class="calculator-form" id="calculator">
+        <h2>Inputs</h2>
+        <fieldset class="source-toggle">
+          <legend>Purchase Source</legend>
+          <label><input type="radio" name="purchaseSource" value="limitedsmarket" checked><span>LimitedsMarket</span></label>
+          <label><input type="radio" name="purchaseSource" value="direct"><span>Direct Seller</span></label>
+        </fieldset>
+        <label>Listed Price IDR <input id="listedPrice" type="text" inputmode="numeric" value="Rp 1.000.000" autocomplete="off"></label>
+        <small id="taxHelp">Price before the 5.3% LimitedsMarket tax.</small>
+        <label>Roblox RAP <input id="calculatorRap" type="number" min="0" step="1" value="10000"></label>
+        <label>Robux Sell Rate
+          <select id="calculatorRate"><option value="130" selected>130</option><option value="135">135</option><option value="140">140</option></select>
+        </label>
+        <button type="reset" class="secondary">Reset</button>
+      </form>
+
+      <section class="calculator-results" aria-live="polite">
+        <h2>Analysis</h2>
+        <div><span>Price IDR</span><b id="resultPrice">—</b><small id="priceHelp">Listed price + 5.3% tax</small></div>
+        <div><span>IDR / 1K RAP</span><b id="resultValue">—</b></div>
+        <div><span>Robux Sell</span><b id="resultRobux">—</b><small>70% of Roblox RAP</small></div>
+        <div><span>Robux Sell IDR</span><b id="resultSellIdr">—</b></div>
+        <div><span>Profit</span><b id="resultProfit">—</b></div>
+        <div><span>Profit / Cost</span><b id="resultRatio">—</b></div>
+      </section>
+    </section>
+  </main>
+  <footer>Uses the same calculation rules as the Scan &amp; Analysis report.</footer>
+  <script src="/calculator.js"></script>
+</body>
+</html>

@@ -2,7 +2,7 @@
 
 ## Overview
 
-The scanner is a small Node.js application built entirely with platform APIs. A single HTTP process serves the static report and proxies market data so the browser does not need to call the source site directly.
+The scanner is a small Node.js application built entirely with platform APIs. A single HTTP process serves the Scan & Analysis and Calculator pages and proxies market data so the report browser does not need to call the source site directly.
 
 ```text
 Browser report
@@ -16,6 +16,11 @@ Node HTTP server
 ```
 
 No listing data is stored on disk. The server keeps one snapshot in memory for the configured cache period.
+
+Static pages:
+
+- `/` - Scan & Analysis report backed by `GET /api/scan`
+- `/calculator.html` - client-side purchase profitability calculator
 
 ## Scan lifecycle
 
@@ -88,7 +93,7 @@ Metrics are `null` when their divisor is zero. They are presentation aids, not f
 
 ## Client behavior
 
-The browser keeps the latest response in memory and applies all search, category, price, RAP, and sort controls locally. CSV export includes only the currently filtered rows and uses these columns:
+The Scan & Analysis page keeps the latest response in memory and applies all search, category, price, RAP, minimum daily-sales, and sort controls locally. CSV export includes only the currently filtered rows and uses these columns:
 
 The selected Robux Sell Rate (130, 135, or 140 IDR) is applied in the browser. `robux_sell_idr = robux_sell × rate`, `profit_idr = robux_sell_idr − after_tax_idr`, and `profit_cost_ratio = (profit_idr ÷ after_tax_idr) × 100`. Changing the selector re-renders all rows immediately.
 
@@ -99,6 +104,22 @@ profit_idr, profit_cost_ratio, rap_status, rap_checked_at, roblox_asset_id,
 roblox_collectible_item_id, sales_30d, avg_daily_sales_30d,
 idr_per_1k_rap, created_at, listing_url, roblox_url, rolimons_url
 ```
+
+## Calculator behavior
+
+The Calculator makes no API requests. It accepts a Rupiah price, Roblox RAP, and a Robux Sell Rate of 130, 135, or 140. The price input is displayed with Indonesian thousand separators. Its purchase-source toggle controls whether tax is applied:
+
+```text
+LimitedsMarket price = ROUND(listed price x 1.053)
+Direct Seller price  = listed price
+Robux Sell           = ROUND(Roblox RAP x 0.7)
+Robux Sell IDR       = Robux Sell x selected rate
+IDR / 1K RAP         = purchase price x 1,000 / Roblox RAP
+Profit               = Robux Sell IDR - purchase price
+Profit / Cost        = Profit / purchase price x 100
+```
+
+The calculator is constrained to one viewport on desktop. Its mobile layout stacks the form and results and restores normal vertical scrolling.
 
 ## Security and operational notes
 
