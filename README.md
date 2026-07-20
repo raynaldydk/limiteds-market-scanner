@@ -94,6 +94,8 @@ The Send Limit summary displays combined `Robux Send Limit Used / Robux Send Lim
 
 Each account row includes `Limited to Robux = ROUND(Limiteds RAP x 0.7)` and Quota displayed as `(Limited to Robux + Robux + Robux Pending) / (Robux Send Limit - Send Limit Used)`.
 
+Account Manager automatically refreshes each saved account's public Roblox avatar, limited-item list, and Limiteds RAP when the page opens. The `Refresh Inventory` button runs the same refresh manually. Robux balances, pending Robux, send limits, usage, and Plus status are preserved.
+
 ## Sell Robux
 
 The Sell Robux page records a source username, Robux sold, a rate of 130/135/140, calculated IDR price, and timestamp. Inserting a record subtracts `Robux Sold` from the selected account's Robux balance and adds it to Robux Send Limit Used. A sale is rejected when the account lacks Robux or remaining send limit. Records persist in the Git-ignored `data/robux-sales.json` file. The username filter and 1/7/30-day period toggle update both the KPI cards and sales history while retaining the desktop one-viewport layout.
