@@ -95,7 +95,7 @@ Each account row includes `Limited to Robux = ROUND(Limiteds RAP x 0.7)` and Quo
 
 ## Sell Robux
 
-The Sell Robux page records a source username, Robux sold, a rate of 130/135/140, calculated IDR price, and timestamp. Inserting a record subtracts `Robux Sold` from the selected account's Robux balance and adds it to Robux Send Limit Used. A sale is rejected when the account lacks Robux or remaining send limit. Records persist in the Git-ignored `data/robux-sales.json` file.
+The Sell Robux page records a source username, Robux sold, a rate of 130/135/140, calculated IDR price, and timestamp. Inserting a record subtracts `Robux Sold` from the selected account's Robux balance and adds it to Robux Send Limit Used. A sale is rejected when the account lacks Robux or remaining send limit. Records persist in the Git-ignored `data/robux-sales.json` file. The username filter and 1/7/30-day period toggle update both the KPI cards and sales history while retaining the desktop one-viewport layout.
 
 ## Configuration
 

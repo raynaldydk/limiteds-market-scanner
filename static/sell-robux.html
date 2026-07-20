@@ -42,7 +42,17 @@
           <div><span>Total Price</span><b id="totalSalePrice">Rp0</b></div>
         </section>
         <section class="sales-section">
-          <div class="table-heading"><h2>Sales history</h2><p class="result-count">Saved to data/robux-sales.json</p></div>
+          <div class="table-heading sales-heading">
+            <div><h2>Sales history</h2><p class="result-count">Saved to data/robux-sales.json</p></div>
+            <div class="sales-filters" aria-label="Sales history filters">
+              <label>Username <select id="historyUsername"><option value="">All accounts</option></select></label>
+              <div class="period-toggle" role="group" aria-label="Sales period">
+                <button type="button" data-days="1">1 Day</button>
+                <button type="button" data-days="7">7 Days</button>
+                <button type="button" class="active" data-days="30">30 Days</button>
+              </div>
+            </div>
+          </div>
           <div class="table-wrap sales-table-wrap"><table class="sales-table"><thead><tr><th>Username Source</th><th class="num">Robux Sold</th><th class="num">Rate</th><th class="num">Price</th><th>Created</th></tr></thead><tbody id="salesGrid"></tbody></table></div>
           <div id="salesEmpty" class="empty">No Robux sales recorded yet.</div>
         </section>
