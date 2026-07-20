@@ -33,10 +33,52 @@ async function loadStoredAccounts() {
     if (data.accounts.length) accounts = data.accounts;
     else if (browserBackup.length) await saveAccounts();
     render();
+    if (accounts.length) await refreshInventories(true);
   } catch (error) {
     const status = byId('connectionStatus');
     status.hidden = false; status.textContent = `${error.message}. Using browser backup.`; status.className = 'connection-status error';
   }
+}
+
+async function refreshInventories(automatic = false) {
+  const status = byId('connectionStatus');
+  const button = byId('refreshInventory');
+  button.disabled = true;
+  status.hidden = false;
+  status.className = 'connection-status';
+  let refreshed = 0;
+  const failed = [];
+  for (let index = 0; index < accounts.length; index++) {
+    const account = accounts[index];
+    status.textContent = `${automatic ? 'Automatically refreshing' : 'Refreshing'} inventory ${index + 1}/${accounts.length}: ${account.username}…`;
+    try {
+      const response = await fetch(`/api/roblox/account?username=${encodeURIComponent(account.username)}`);
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.error || 'Roblox inventory lookup failed');
+      accounts[index] = {
+        ...account,
+        robloxUserId:data.robloxUserId,
+        username:data.username,
+        displayName:data.displayName,
+        avatarUrl:data.avatarUrl,
+        profileUrl:data.profileUrl,
+        limitedItems:data.limitedItems.join(', '),
+        limitedRapTotal:integer(data.limitedRapTotal)
+      };
+      refreshed++;
+      render();
+    } catch (error) { failed.push(`${account.username}: ${error.message}`); }
+  }
+  try {
+    if (refreshed) await saveAccounts();
+    status.textContent = failed.length
+      ? `Refreshed ${refreshed}/${accounts.length}. Failed: ${failed.join('; ')}`
+      : `Inventory refreshed for ${refreshed} account${refreshed === 1 ? '' : 's'}.`;
+    status.className = `connection-status ${failed.length ? 'error' : 'success'}`;
+  } catch (error) {
+    status.textContent = error.message;
+    status.className = 'connection-status error';
+  } finally { button.disabled = false; }
 }
 
 function escapeHtml(value) {
@@ -154,6 +196,7 @@ async function syncPublicAccount(username) {
 }
 
 byId('addAccount').addEventListener('click', () => { byId('usernameForm').reset(); byId('usernameDialog').showModal(); byId('lookupUsername').focus(); });
+byId('refreshInventory').addEventListener('click', () => refreshInventories(false));
 byId('usernameForm').addEventListener('submit', event => { event.preventDefault(); syncPublicAccount(byId('lookupUsername').value.trim()); });
 byId('closeUsernameDialog').addEventListener('click', () => byId('usernameDialog').close());
 byId('cancelUsername').addEventListener('click', () => byId('usernameDialog').close());
