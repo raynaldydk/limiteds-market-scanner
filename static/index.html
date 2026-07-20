@@ -26,18 +26,22 @@
       <select id="category"><option value="">All categories</option></select>
       <label>Max IDR <input id="maxPrice" type="number" min="0" step="100000" placeholder="Any"></label>
       <label>Min RAP <input id="minRap" type="number" min="0" step="1000" placeholder="Any"></label>
+      <label>Min Daily Sales <input id="minDailySales" type="number" min="0" step="1" placeholder="Any"></label>
       <select id="sort">
         <option value="value">Best value</option><option value="priceAsc">Price: low to high</option>
         <option value="priceDesc">Price: high to low</option><option value="rapDesc">RAP: high to low</option>
         <option value="newest">Newest</option>
       </select>
+      <label>Robux Sell Rate
+        <select id="sellRate"><option value="130" selected>130</option><option value="135">135</option><option value="140">140</option></select>
+      </label>
       <button id="export" class="secondary">Export CSV</button>
     </section>
 
     <div class="table-heading"><h2>Active listings</h2><p id="resultCount" class="result-count"></p></div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Item</th><th class="num">Listed RAP</th><th class="num">Roblox RAP</th><th class="num">Price IDR</th><th class="num">After tax IDR</th><th class="num">IDR / 1K RAP</th><th>Listed</th><th class="num">Daily Sales (30d)</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th>Item</th><th class="num">Daily Sales (30d)</th><th class="num">Roblox RAP</th><th class="num">Robux Sell</th><th class="num">Price IDR</th><th class="num">IDR / 1K RAP</th><th class="num">Robux Sell IDR</th><th class="num">Profit</th><th class="num">Profit / Cost</th><th>Listed</th><th></th></tr></thead>
         <tbody id="grid"></tbody>
       </table>
     </div>

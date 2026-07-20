@@ -26,6 +26,8 @@ On shells where the `npm` script shim is enabled, `npm start` works as well. The
 - Converts USD prices with Limiteds Market's current IDR rate
 - Shows after-tax IDR as `price_idr × 105.3%`
 - Calculates average daily sales from Roblox's trailing 30-day volume history
+- Calculates Robux Sell as rounded `70% × Roblox RAP`
+- Provides selectable Robux Sell rates of 130, 135, or 140 IDR and live profit calculations
 - Search and filter by category, maximum price, and minimum RAP
 - Sort by value, price, RAP, or listing age
 - Retrieves current RAP from Roblox's migrated Marketplace Sales endpoint
@@ -46,6 +48,10 @@ On shells where the `npm` script shim is enabled, `npm start` works as well. The
 | Listed RAP | Value/RAP supplied with the Limiteds Market listing |
 | Roblox RAP | Current `recentAveragePrice` supplied by Roblox Marketplace Sales |
 | Daily Sales (30d) | Roblox sales during the trailing 30 UTC days divided by 30 |
+| Robux Sell | `ROUND(0.7 × Roblox RAP)` |
+| Robux Sell IDR | `Robux Sell × selected Robux Sell Rate` |
+| Profit | `Robux Sell IDR − After Tax IDR` |
+| Profit / Cost | `(Profit ÷ After Tax IDR) × 100`, shown with two decimals |
 | IDR / 1K RAP | `after_tax_idr × 1,000 ÷ RAP`; lower values represent more RAP per rupiah after tax |
 | Listed | Listing creation timestamp formatted as `dd/mm/yyyy:hh.mm.ss` |
 

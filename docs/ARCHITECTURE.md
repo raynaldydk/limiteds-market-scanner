@@ -74,6 +74,7 @@ The scanner preserves the listing fields received from Limiteds Market and adds:
 | `idr_per_1k_rap` | number or `null` | After-tax IDR price per 1,000 current Roblox RAP |
 | `sales_30d` | number or `null` | Total Roblox resale volume in the trailing 30 UTC calendar days |
 | `avg_daily_sales_30d` | number or `null` | `sales_30d ÷ 30`, rounded to two decimals |
+| `robux_sell` | number or `null` | `ROUND(0.7 × current Roblox RAP)` |
 | `market_rap` | number | Original marketplace RAP retained for diagnostics only |
 | `rap` | number or `null` | Current Roblox `recentAveragePrice`; never falls back to `market_rap` |
 | `rap_status` | string | `queued`, `updating`, `current`, `unmatched`, `unavailable`, or `retrying` |
@@ -89,9 +90,12 @@ Metrics are `null` when their divisor is zero. They are presentation aids, not f
 
 The browser keeps the latest response in memory and applies all search, category, price, RAP, and sort controls locally. CSV export includes only the currently filtered rows and uses these columns:
 
+The selected Robux Sell Rate (130, 135, or 140 IDR) is applied in the browser. `robux_sell_idr = robux_sell × rate`, `profit_idr = robux_sell_idr − after_tax_idr`, and `profit_cost_ratio = (profit_idr ÷ after_tax_idr) × 100`. Changing the selector re-renders all rows immediately.
+
 ```text
 item_name, category, idr_rate, price_idr, after_tax_idr,
-market_rap, rap, rap_status, rap_checked_at, roblox_asset_id,
+market_rap, rap, robux_sell, robux_sell_rate, robux_sell_idr,
+profit_idr, profit_cost_ratio, rap_status, rap_checked_at, roblox_asset_id,
 roblox_collectible_item_id, sales_30d, avg_daily_sales_30d,
 idr_per_1k_rap, created_at, listing_url, roblox_url, rolimons_url
 ```

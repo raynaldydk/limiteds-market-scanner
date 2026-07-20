@@ -80,6 +80,11 @@ export function calculateAverageDailySales(points, now = Date.now()) {
   return { total, average: Math.round(total / 30 * 100) / 100 };
 }
 
+export function calculateRobuxSell(rap) {
+  const value = Number(rap);
+  return Number.isFinite(value) && value > 0 ? Math.round(value * 0.7) : null;
+}
+
 function queueRapUpdates(items) {
   const now = Date.now();
   const cheapestByName = new Map();
@@ -154,6 +159,7 @@ function applyCurrentRap(items) {
     const current = robloxData.get(item.item_name);
     const rap = Number(current?.rap || 0);
     item.rap = current?.rap ?? null;
+    item.robux_sell = calculateRobuxSell(current?.rap);
     item.rap_status = current?.status || (queuedNames.has(item.item_name) ? 'updating' : 'queued');
     item.roblox_asset_id = current?.assetId || null;
     item.roblox_collectible_item_id = current?.collectibleItemId || null;

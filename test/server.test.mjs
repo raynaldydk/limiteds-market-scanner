@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateAverageDailySales, clearCache, fetchCurrentRap, scanAll } from '../server.mjs';
+import { calculateAverageDailySales, calculateRobuxSell, clearCache, fetchCurrentRap, scanAll } from '../server.mjs';
 
 test('scans all pages and calculates metrics', async () => {
   clearCache(); let calls = 0;
@@ -44,4 +44,9 @@ test('calculates trailing 30-day average daily sales', () => {
     {date:'2026-06-20T00:00:00Z',value:99}
   ];
   assert.deepEqual(calculateAverageDailySales(points, now), {total:3, average:0.1});
+});
+
+test('calculates Robux sell as 70 percent of RAP rounded to zero decimals', () => {
+  assert.equal(calculateRobuxSell(10001), 7001);
+  assert.equal(calculateRobuxSell(null), null);
 });
