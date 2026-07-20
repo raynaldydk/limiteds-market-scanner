@@ -18,6 +18,7 @@ Open:
 - Scan & Analysis: <http://127.0.0.1:8000>
 - Calculator: <http://127.0.0.1:8000/calculator.html>
 - Account Manager: <http://127.0.0.1:8000/accounts.html>
+- Sell Robux: <http://127.0.0.1:8000/sell-robux.html>
 
 The server binds to `127.0.0.1` by default.
 
@@ -89,6 +90,10 @@ The Send Limit summary displays combined `Robux Send Limit Used / Robux Send Lim
 
 Each account row includes `Limited to Robux = ROUND(Limiteds RAP x 0.7)` and Quota displayed as `(Limited to Robux + Robux + Robux Pending) / (Robux Send Limit - Send Limit Used)`.
 
+## Sell Robux
+
+The Sell Robux page records a source username, Robux sold, a rate of 130/135/140, calculated IDR price, and timestamp. Inserting a record subtracts `Robux Sold` from the selected account's Robux balance and adds it to Robux Send Limit Used. A sale is rejected when the account lacks Robux or remaining send limit. Records persist in the Git-ignored `data/robux-sales.json` file.
+
 ## Configuration
 
 | Environment variable | Default | Description |
@@ -128,6 +133,9 @@ static/calculator.css   Viewport-fitted Calculator layout
 static/accounts.html    Local Account Manager page
 static/accounts.js      Browser-local account record management
 static/accounts.css     Account table and editor styling
+static/sell-robux.html  Robux sale entry and history page
+static/sell-robux.js    Sale calculations and account updates
+static/sell-robux.css   Sale form and history styling
 test/server.test.mjs    Scanner, RAP, sales, and calculation tests
 docs/ARCHITECTURE.md    Architecture, API schema, and operational notes
 ```

@@ -7,6 +7,7 @@ const BASE_URL = 'https://limitedsmarket.com';
 const API_URL = `${BASE_URL}/api/listings`;
 const ROOT = fileURLToPath(new URL('./static/', import.meta.url));
 const ACCOUNT_DATA_PATH = fileURLToPath(new URL('./data/accounts.json', import.meta.url));
+const ROBUX_SALES_PATH = fileURLToPath(new URL('./data/robux-sales.json', import.meta.url));
 const CACHE_TTL = Number(process.env.CACHE_TTL_SECONDS || 30) * 1000;
 const cache = { at: 0, items: [] };
 const currencyCache = { at: 0, idrRate: null };
@@ -53,6 +54,41 @@ async function writeAccounts(accounts) {
   if (!Array.isArray(accounts)) throw new Error('Account data must be an array');
   await mkdir(fileURLToPath(new URL('./data/', import.meta.url)), { recursive:true });
   await writeFile(ACCOUNT_DATA_PATH, `${JSON.stringify(accounts, null, 2)}\n`, 'utf8');
+}
+
+async function readRobuxSales() {
+  try {
+    const sales = JSON.parse(await readFile(ROBUX_SALES_PATH, 'utf8'));
+    return Array.isArray(sales) ? sales : [];
+  } catch (error) {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+async function writeRobuxSales(sales) {
+  await mkdir(fileURLToPath(new URL('./data/', import.meta.url)), { recursive:true });
+  await writeFile(ROBUX_SALES_PATH, `${JSON.stringify(sales, null, 2)}\n`, 'utf8');
+}
+
+export function applyRobuxSale(accounts, input, now = new Date()) {
+  const robuxSold = Math.round(Number(input.robuxSold));
+  const rate = Number(input.rate);
+  if (!Number.isFinite(robuxSold) || robuxSold <= 0) throw new Error('Robux sold must be greater than zero');
+  if (![130, 135, 140].includes(rate)) throw new Error('Rate must be 130, 135, or 140');
+  const source = accounts.find(account => account.id === input.accountId);
+  if (!source) throw new Error('Source account was not found');
+  const availableRobux = Math.max(0, Math.round(Number(source.robux) || 0));
+  const sendLimit = Math.max(0, Math.round(Number(source.sendLimit) || 0));
+  const sendLimitUsed = Math.max(0, Math.round(Number(source.sendLimitUsed) || 0));
+  if (robuxSold > availableRobux) throw new Error('Source account does not have enough Robux');
+  if (robuxSold > Math.max(0, sendLimit - sendLimitUsed)) throw new Error('Sale exceeds the remaining send limit');
+  const updatedAccount = { ...source, robux:availableRobux - robuxSold, sendLimitUsed:sendLimitUsed + robuxSold };
+  const sale = {
+    id:`sale-${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`, accountId:source.id,
+    usernameSource:source.username, robuxSold, rate, price:robuxSold * rate, createdAt:now.toISOString()
+  };
+  return { accounts:accounts.map(account => account.id === source.id ? updatedAccount : account), updatedAccount, sale };
 }
 
 async function requestJson(request, maxBytes = 1000000) {
@@ -282,6 +318,22 @@ export const server = createServer(async (req, res) => {
       await writeAccounts(body.accounts);
       return json(res, 200, { saved:true, count:body.accounts.length });
     } catch (error) { return json(res, 400, { error:`Account data could not be saved: ${error.message}` }); }
+  }
+  if (url.pathname === '/api/robux-sales' && req.method === 'GET') {
+    try { return json(res, 200, { sales:await readRobuxSales() }); }
+    catch (error) { return json(res, 500, { error:`Robux sales could not be read: ${error.message}` }); }
+  }
+  if (url.pathname === '/api/robux-sales' && req.method === 'POST') {
+    try {
+      const input = await requestJson(req);
+      const accounts = await readAccounts();
+      const result = applyRobuxSale(accounts, input);
+      const sales = await readRobuxSales();
+      await writeRobuxSales([result.sale, ...sales]);
+      try { await writeAccounts(result.accounts); }
+      catch (error) { await writeRobuxSales(sales); throw error; }
+      return json(res, 201, { sale:result.sale, account:result.updatedAccount });
+    } catch (error) { return json(res, 400, { error:error.message }); }
   }
   if (url.pathname === '/api/scan') {
     const started = performance.now();
