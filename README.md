@@ -54,6 +54,8 @@ The server binds to `127.0.0.1` by default.
 | Profit / Cost | `(Profit / Price IDR) x 100`, shown with two decimals |
 | Listed | Date and time on separate lines: `dd/mm/yyyy` and `hh.mm.ss` |
 
+IDR / 1K RAP is highlighted red when the row's calculated profit is below zero at the selected Robux Sell Rate.
+
 ## Calculator
 
 The Calculator works independently of the live scan. Enter a Rupiah price and Roblox RAP, select a Robux Sell Rate, and toggle the purchase source:

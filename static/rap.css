@@ -65,6 +65,14 @@ button {
   font-weight: 700;
 }
 
+.value.negative-value {
+  color: #a33131;
+}
+
+html[data-theme="dark"] .value.negative-value {
+  color: #ff7b7b;
+}
+
 @media (min-width: 901px) {
   .table-wrap {
     overflow-x: visible;
