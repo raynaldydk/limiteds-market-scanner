@@ -209,6 +209,7 @@ html[data-theme="dark"] .source-toggle input:checked + span {
 
 .page-nav {
   display: flex;
+  flex-wrap: wrap;
   gap: 6px;
   padding: 14px 36px;
   border-bottom: 1px solid var(--line);

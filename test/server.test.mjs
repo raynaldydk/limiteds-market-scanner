@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateAverageDailySales, calculateRobuxSell, clearCache, fetchCurrentRap, scanAll } from '../server.mjs';
+import { calculateAverageDailySales, calculateRobuxSell, clearCache, fetchCurrentRap, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
 
 test('scans all pages and calculates metrics', async () => {
   clearCache(); let calls = 0;
@@ -87,4 +87,22 @@ test('calculates trailing 30-day average daily sales', () => {
 test('calculates Robux sell as 70 percent of RAP rounded to zero decimals', () => {
   assert.equal(calculateRobuxSell(10001), 7001);
   assert.equal(calculateRobuxSell(null), null);
+});
+
+test('resolves a public Roblox account and collectible inventory by username', async () => {
+  const urls = [];
+  const replies = [
+    {data:[{id:123,name:'ExampleUser',displayName:'Example'}]},
+    {data:[{imageUrl:'https://tr.rbxcdn.com/avatar.png'}]},
+    {data:[{name:'Limited One',recentAveragePrice:1200},{name:'Limited Two',recentAveragePrice:2300}],nextPageCursor:null}
+  ];
+  let call = 0;
+  const fetcher = async (url, options) => { urls.push({url,options}); return {ok:true,json:async()=>replies[call++]}; };
+  const account = await fetchPublicRobloxAccount('ExampleUser', fetcher);
+  assert.match(urls[0].url, /usernames\/users/);
+  assert.equal(JSON.parse(urls[0].options.body).usernames[0], 'ExampleUser');
+  assert.equal(account.robloxUserId, '123');
+  assert.equal(account.avatarUrl, 'https://tr.rbxcdn.com/avatar.png');
+  assert.deepEqual(account.limitedItems, ['Limited One','Limited Two']);
+  assert.equal(account.limitedRapTotal, 3500);
 });

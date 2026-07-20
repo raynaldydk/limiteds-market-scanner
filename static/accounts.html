@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Account Manager | Limiteds Market Scanner</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/rap.css">
+  <link rel="stylesheet" href="/accounts.css">
+  <script src="/theme.js"></script>
+</head>
+<body>
+  <main>
+    <nav class="page-nav" aria-label="Main navigation">
+      <a href="/">Scan &amp; Analysis</a>
+      <a href="/calculator.html">Calculator</a>
+      <a class="active" href="/accounts.html">Account Manager</a>
+      <button class="theme-toggle secondary" type="button" aria-label="Switch color theme">Dark mode</button>
+    </nav>
+
+    <header>
+      <div><p class="eyebrow">LOCAL RECORDS</p><h1>Account Manager</h1><p class="subtitle">Track Roblox account inventory and Robux transfer limits.</p></div>
+      <button id="addAccount" type="button">Add account by username</button>
+    </header>
+
+    <section class="account-summary">
+      <div><span>Accounts</span><b id="accountCount">0</b></div>
+      <div><span>Total Robux</span><b id="totalRobux">0</b></div>
+      <div><span>Robux Pending</span><b id="totalRobuxPending">0</b></div>
+      <div><span>Send Limit Used / Limit</span><b id="totalLimitUsed">0 / 0</b></div>
+      <div><span>Robux Plus Active</span><b id="plusActive">0</b></div>
+      <div><span>Limiteds RAP</span><b id="totalLimitedRap">0</b></div>
+      <div><span>Estimated Robux</span><b id="estimatedRobux">0</b></div>
+      <div class="rate-card"><span>Robux Sell Rate</span><select id="accountSellRate"><option value="130" selected>130</option><option value="135">135</option><option value="140">140</option></select></div>
+      <div><span>Estimated IDR</span><b id="estimatedIdr">Rp0</b></div>
+    </section>
+
+    <section class="accounts-section">
+      <p id="connectionStatus" class="connection-status" hidden></p>
+      <div class="table-heading"><h2>Accounts</h2><p class="result-count">Saved to data/accounts.json</p></div>
+      <div class="table-wrap accounts-table-wrap">
+        <table class="accounts-table">
+          <thead><tr><th title="Roblox username">User</th><th title="Roblox avatar and profile links">Avatar &amp; Links</th><th title="Public limited item names">Limiteds</th><th class="num" title="Total Recent Average Price">RAP</th><th class="num" title="70% of Limiteds RAP">70% RAP</th><th class="num">Robux</th><th class="num" title="Pending Robux">Pending</th><th class="num" title="Robux Send Limit">Send Limit</th><th class="num" title="Robux Send Limit Used">Used</th><th class="num" title="Estimated Robux / remaining send limit">Quota</th><th title="Robux Plus Status">Plus Status</th><th></th></tr></thead>
+          <tbody id="accountsGrid"></tbody>
+        </table>
+      </div>
+      <div id="accountsEmpty" class="empty">No accounts added yet.</div>
+    </section>
+  </main>
+
+  <dialog id="accountDialog">
+    <form id="accountForm" method="dialog">
+      <div class="dialog-heading"><h2 id="dialogTitle">Add account</h2><button id="closeDialog" class="icon-button secondary" type="button" aria-label="Close">×</button></div>
+      <input id="accountId" type="hidden">
+      <div class="account-fields">
+        <label>Username <input id="username" required readonly></label>
+        <label>Ava Roblox <input id="avatarUrl" type="url" readonly></label>
+        <label class="wide">Limited Items <textarea id="limitedItems" rows="3" readonly></textarea></label>
+        <label>Robux <input id="robux" type="number" min="0" step="1" value="0"></label>
+        <label>Robux Pending <input id="robuxPending" type="number" min="0" step="1" value="0"></label>
+        <label>Robux Send Limit <input id="sendLimit" type="number" min="0" step="1" value="0"></label>
+        <label>Robux Send Limit Used <input id="sendLimitUsed" type="number" min="0" step="1" value="0"></label>
+        <label>Robux Plus Status <select id="plusStatus"><option value="active">Active</option><option value="inactive" selected>Inactive</option></select></label>
+      </div>
+      <div class="dialog-actions"><button id="cancelAccount" class="secondary" type="button">Cancel</button><button type="submit">Save account</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="usernameDialog">
+    <form id="usernameForm">
+      <div class="dialog-heading"><h2>Add Roblox account</h2><button id="closeUsernameDialog" class="icon-button secondary" type="button" aria-label="Close">×</button></div>
+      <div class="account-fields"><label class="wide">Roblox Username <input id="lookupUsername" required autocomplete="off" placeholder="Enter exact username"></label></div>
+      <p class="form-note">The avatar and public limited inventory will be retrieved automatically.</p>
+      <div class="dialog-actions"><button id="cancelUsername" class="secondary" type="button">Cancel</button><button id="lookupAccount" type="submit">Find account</button></div>
+    </form>
+  </dialog>
+
+  <footer>Account records are saved locally to data/accounts.json. Public profile and inventory data is retrieved from Roblox.</footer>
+  <script src="/accounts.js"></script>
+</body>
+</html>

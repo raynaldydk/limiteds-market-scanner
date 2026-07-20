@@ -21,8 +21,19 @@ Static pages:
 
 - `/` - Scan & Analysis report backed by `GET /api/scan`
 - `/calculator.html` - client-side purchase profitability calculator
+- `/accounts.html` - browser-local Roblox account manager
 
-Both pages load `theme.js`. The top-right Light/Dark toggle stores the selected theme in browser `localStorage` under `limiteds-market-theme`, so the preference persists across pages and reloads. Theme colors are applied with shared CSS custom properties and `data-theme` on the root document element.
+All three pages load `theme.js`. The top-right Light/Dark toggle stores the selected theme in browser `localStorage` under `limiteds-market-theme`, so the preference persists across pages and reloads. Theme colors are applied with shared CSS custom properties and `data-theme` on the root document element.
+
+The Account Manager persists records as formatted JSON in `data/accounts.json` through `GET` and `PUT /api/accounts`. Browser `localStorage` under `limiteds-market-accounts` remains a migration and recovery backup; when the text file is empty, existing browser records are copied into it automatically. The data file is excluded from Git to avoid publishing personal account records. `GET /api/roblox/account?username=...` resolves an exact public Roblox username, retrieves its avatar headshot, and reads up to 1,000 public collectible inventory records. `limitedRapTotal` is the sum of `recentAveragePrice` across the returned collectibles. No authentication tokens or Roblox credentials are collected.
+
+The client calculates the combined Estimated Robux card as the sum of `ROUND(0.7 x limitedRapTotal) + robux + robuxPending` for every saved account.
+
+Each account row shows `limitedToRobux = ROUND(0.7 x limitedRapTotal)`. Quota is rendered as `estimatedAccountRobux / remainingSendLimit`, where `estimatedAccountRobux = limitedToRobux + robux + robuxPending` and `remainingSendLimit = MAX(0, sendLimit - sendLimitUsed)`.
+
+The selected Account Manager Robux Sell Rate (130, 135, or 140) is stored under `limiteds-market-account-sell-rate`. The Estimated IDR card is `Estimated Robux x selected rate` and re-renders immediately when the selector changes.
+
+Roblox balance, pending transaction, and transaction-total endpoints require Roblox session-cookie authentication rather than public APIs, so this application does not automate those fields or request `.ROBLOSECURITY` cookies.
 
 ## Scan lifecycle
 
