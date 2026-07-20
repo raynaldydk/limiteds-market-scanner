@@ -1,0 +1,89 @@
+# Limiteds Market Scanner
+
+A dependency-free local report that scans every active Roblox Limited listing from Limiteds Market's public listings endpoint.
+
+The application collects all result pages on the server, calculates price-to-RAP metrics, and presents the listings in a searchable report table. It does not require an account, cookies, browser automation, or third-party packages.
+
+## Requirements
+
+- Node.js 20 or newer
+- Internet access to `limitedsmarket.com`
+
+## Run
+
+```powershell
+npm.cmd start
+```
+
+Open <http://127.0.0.1:8000>.
+
+On shells where the `npm` script shim is enabled, `npm start` works as well. The server binds only to `127.0.0.1` by default.
+
+## Features
+
+- Fetches every paginated listing, not only the first page
+- Search and filter by category, maximum price, and minimum RAP
+- Sort by value, price, RAP, or listing age
+- Computes USD per 1,000 RAP and RAP per USD
+- CSV export of the current filtered view
+- Direct links to the original listings
+- No credentials, cookies, browser automation, or third-party Python packages
+
+## Report columns
+
+| Column | Meaning |
+| --- | --- |
+| Price | Listing price in USD |
+| RAP | Value/RAP supplied by Limiteds Market |
+| USD / 1K RAP | `price_usd × 1,000 ÷ RAP`; lower values represent more RAP per dollar |
+| RAP / USD | `RAP ÷ price_usd`; higher values represent more RAP per dollar |
+| Seller | Verified or standard seller status |
+| Listed | Listing creation date |
+
+## Configuration
+
+| Environment variable | Default | Description |
+| --- | ---: | --- |
+| `PORT` | `8000` | Local HTTP port |
+| `CACHE_TTL_SECONDS` | `30` | Time before the server fetches a fresh market snapshot |
+
+Example:
+
+```powershell
+$env:PORT = 8080
+$env:CACHE_TTL_SECONDS = 60
+npm.cmd start
+```
+
+## Local API
+
+`GET /api/scan` returns the normalized market report as JSON. Add `?refresh=1` to bypass the 30-second snapshot cache.
+
+```text
+GET http://127.0.0.1:8000/api/scan?refresh=1
+```
+
+The response contains `items`, `total`, `cached`, `scanned_at`, and `duration_ms`. See [Architecture and data reference](docs/ARCHITECTURE.md) for details.
+
+## Test
+
+```powershell
+npm.cmd test
+```
+
+The test suite uses Node's built-in test runner and makes no network requests.
+
+## Project structure
+
+```text
+server.mjs              HTTP server, upstream scanner, cache, derived metrics
+static/index.html       Report markup
+static/app.js           Filters, sorting, rendering, and CSV export
+static/styles.css       Responsive report styling
+test/server.test.mjs    Scanner pagination and cache tests
+docs/ARCHITECTURE.md    Architecture, API schema, and operational notes
+```
+
+## Data source and disclaimer
+
+This is an independent viewer and is not affiliated with LimitedsMarket or Roblox. Be considerate with scan frequency and review the source site's terms before deploying an automated polling service.

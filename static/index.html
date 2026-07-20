@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Limiteds Market Scanner</title>
+  <link rel="stylesheet" href="/styles.css">
+</head>
+<body>
+  <main>
+    <header>
+      <div><p class="eyebrow">MARKET REPORT</p><h1>Limiteds Market Listings</h1><p class="subtitle">Complete active-listing scan and price-to-RAP analysis</p></div>
+      <button id="scan">Refresh report</button>
+    </header>
+
+    <section class="report-meta">
+      <div><span>Listings</span><b id="total">—</b></div>
+      <div><span>Best USD / 1K RAP</span><b id="best">—</b></div>
+      <div><span>Combined RAP</span><b id="rap">—</b></div>
+      <div><span>Generated</span><b id="last">—</b><small id="status">connecting</small></div>
+    </section>
+
+    <section class="toolbar">
+      <input id="search" type="search" placeholder="Search item name…">
+      <select id="category"><option value="">All categories</option></select>
+      <label>Max $ <input id="maxPrice" type="number" min="0" step="1" placeholder="Any"></label>
+      <label>Min RAP <input id="minRap" type="number" min="0" step="1000" placeholder="Any"></label>
+      <select id="sort">
+        <option value="value">Best value</option><option value="priceAsc">Price: low to high</option>
+        <option value="priceDesc">Price: high to low</option><option value="rapDesc">RAP: high to low</option>
+        <option value="newest">Newest</option>
+      </select>
+      <button id="export" class="secondary">Export CSV</button>
+    </section>
+
+    <div class="table-heading"><h2>Active listings</h2><p id="resultCount" class="result-count"></p></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Item</th><th>Category</th><th class="num">Price</th><th class="num">RAP</th><th class="num">USD / 1K RAP</th><th class="num">RAP / USD</th><th>Seller</th><th>Listed</th><th></th></tr></thead>
+        <tbody id="grid"></tbody>
+      </table>
+    </div>
+    <div id="empty" class="empty" hidden>No listings match those filters.</div>
+  </main>
+  <footer>Source: Limiteds Market public listings · Independent report, not affiliated with LimitedsMarket or Roblox.</footer>
+  <script src="/app.js"></script>
+</body>
+</html>
