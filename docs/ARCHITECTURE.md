@@ -17,6 +17,8 @@ Node HTTP server
 
 No listing data is stored on disk. The server keeps one snapshot in memory for the configured cache period.
 
+Seller UUIDs are assigned stable sequential labels such as `Seller 1` and `Seller 2`. The private UUID-to-number mapping persists in the Git-ignored `data/seller-map.json` file. The original UUID remains available in API and CSV data as `seller_id`; the label number is returned as `seller_internal_id`.
+
 Static pages:
 
 - `/` - Scan & Analysis report backed by `GET /api/scan`
