@@ -3,4 +3,5 @@ node_modules/
 data/accounts.json
 data/robux-sales.json
 data/limited-purchases.json
+data/limited-sales.json
 data/seller-map.json

@@ -20,6 +20,8 @@ async function loadData() {
 
 function renderPurchases() {
   element('purchaseCount').textContent = number(purchases.length);
+  element('totalRap').textContent = number(purchases.reduce((sum, item) => sum + Number(item.rap || 0), 0));
+  element('totalEstimatedRobux').textContent = number(purchases.reduce((sum, item) => sum + getRobuxSell70(item), 0));
   element('totalCost').textContent = idr(purchases.reduce((sum, item) => sum + Number(item.purchasePrice || 0), 0));
   const revenue = purchases.reduce((sum, item) => sum + getRevenue(item), 0);
   const profit = purchases.reduce((sum, item) => sum + getProfit(item), 0);

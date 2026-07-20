@@ -100,7 +100,7 @@ The Sell Robux page records a source username, Robux sold, a rate of 130/135/140
 
 ## Limited Buying
 
-The Limited Buying page assigns each purchase to a username selected from Account Manager and records item name, RAP, after-tax purchase price, purchase date, and a Robux sell rate. `Scan RAP` looks up current Roblox RAP from the exact item name and supports the face/dynamic-head fallback. The page calculates `70% RAP = ROUND(0.7 x RAP)`, `Est. Revenue = 70% RAP x Rate`, `Minimum Robux Sell = CEILING(Purchase Price / Rate)`, and `Profit Est. = Est. Revenue - Purchase Price`. Purchases persist locally in the Git-ignored `data/limited-purchases.json` file.
+The Limited Buying page assigns each purchase to a username selected from Account Manager and records item name, RAP, after-tax purchase price, purchase date, and a Robux sell rate. `Scan RAP` looks up current Roblox RAP from the exact item name and supports the face/dynamic-head fallback. KPI cards include Total RAP and Estimated Robux, calculated as the sum of each item's rounded 70% RAP. The page calculates `70% RAP = ROUND(0.7 x RAP)`, `Est. Revenue = 70% RAP x Rate`, `Minimum Robux Sell = CEILING(Purchase Price / Rate)`, and `Profit Est. = Est. Revenue - Purchase Price`. Purchases persist locally in the Git-ignored `data/limited-purchases.json` file.
 
 ## Configuration
 
