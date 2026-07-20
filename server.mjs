@@ -1,11 +1,12 @@
 import { createServer } from 'node:http';
-import { readFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { extname, join, normalize } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const BASE_URL = 'https://limitedsmarket.com';
 const API_URL = `${BASE_URL}/api/listings`;
 const ROOT = fileURLToPath(new URL('./static/', import.meta.url));
+const ACCOUNT_DATA_PATH = fileURLToPath(new URL('./data/accounts.json', import.meta.url));
 const CACHE_TTL = Number(process.env.CACHE_TTL_SECONDS || 30) * 1000;
 const cache = { at: 0, items: [] };
 const currencyCache = { at: 0, idrRate: null };
@@ -36,6 +37,63 @@ async function fetchJson(url, fetcher = fetch) {
     await wait(750 * 2 ** attempt);
   }
   throw new Error('Roblox rate limit persisted');
+}
+
+async function readAccounts() {
+  try {
+    const accounts = JSON.parse(await readFile(ACCOUNT_DATA_PATH, 'utf8'));
+    return Array.isArray(accounts) ? accounts : [];
+  } catch (error) {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+async function writeAccounts(accounts) {
+  if (!Array.isArray(accounts)) throw new Error('Account data must be an array');
+  await mkdir(fileURLToPath(new URL('./data/', import.meta.url)), { recursive:true });
+  await writeFile(ACCOUNT_DATA_PATH, `${JSON.stringify(accounts, null, 2)}\n`, 'utf8');
+}
+
+async function requestJson(request, maxBytes = 1000000) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > maxBytes) throw new Error('Request body is too large');
+    chunks.push(chunk);
+  }
+  return JSON.parse(Buffer.concat(chunks).toString('utf8') || 'null');
+}
+
+export async function fetchPublicRobloxAccount(username, fetcher = fetch) {
+  const lookupResponse = await fetcher('https://users.roblox.com/v1/usernames/users', {
+    method:'POST', headers:{ 'Content-Type':'application/json' }, body:JSON.stringify({ usernames:[username], excludeBannedUsers:true }), signal:AbortSignal.timeout(20000)
+  });
+  if (!lookupResponse.ok) throw new Error(`Roblox username lookup returned HTTP ${lookupResponse.status}`);
+  const lookup = await lookupResponse.json();
+  const user = lookup.data?.[0];
+  if (!user) return null;
+  const thumbnailResponse = await fetcher(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${user.id}&size=150x150&format=Png&isCircular=false`, { signal:AbortSignal.timeout(20000) });
+  const thumbnail = thumbnailResponse.ok ? await thumbnailResponse.json() : { data:[] };
+  const limitedItems = [];
+  let limitedRapTotal = 0;
+  let cursor = '';
+  for (let page = 0; page < 10; page++) {
+    const params = new URLSearchParams({ sortOrder:'Asc', limit:'100' });
+    if (cursor) params.set('cursor', cursor);
+    const inventoryResponse = await fetcher(`https://inventory.roblox.com/v1/users/${user.id}/assets/collectibles?${params}`, { signal:AbortSignal.timeout(20000) });
+    if (!inventoryResponse.ok) break;
+    const inventory = await inventoryResponse.json();
+    limitedItems.push(...(inventory.data || []).map(item => item.name).filter(Boolean));
+    limitedRapTotal += (inventory.data || []).reduce((sum, item) => sum + (Number(item.recentAveragePrice) || 0), 0);
+    cursor = inventory.nextPageCursor || '';
+    if (!cursor) break;
+  }
+  return {
+    robloxUserId:String(user.id), username:user.name, displayName:user.displayName || user.name,
+    profileUrl:`https://www.roblox.com/users/${user.id}/profile`, avatarUrl:thumbnail.data?.[0]?.imageUrl || '', limitedItems, limitedRapTotal
+  };
 }
 
 export async function fetchCurrentRap(name, existingAssetId = null, fetcher = fetch, existingCollectibleItemId = null, category = null, existingBundleId = null) {
@@ -205,6 +263,26 @@ function applyCurrentRap(items) {
 const types = { '.html':'text/html; charset=utf-8', '.css':'text/css; charset=utf-8', '.js':'text/javascript; charset=utf-8', '.png':'image/png', '.svg':'image/svg+xml' };
 export const server = createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
+  if (url.pathname === '/api/roblox/account') {
+    try {
+      const username = String(url.searchParams.get('username') || '').trim();
+      if (!username) return json(res, 400, { error:'Roblox username is required.' });
+      const account = await fetchPublicRobloxAccount(username, fetch);
+      return account ? json(res, 200, account) : json(res, 404, { error:'Roblox username was not found.' });
+    } catch (error) { return json(res, 502, { error:`Roblox account lookup failed: ${error.message}` }); }
+  }
+  if (url.pathname === '/api/accounts' && req.method === 'GET') {
+    try { return json(res, 200, { accounts:await readAccounts() }); }
+    catch (error) { return json(res, 500, { error:`Account data could not be read: ${error.message}` }); }
+  }
+  if (url.pathname === '/api/accounts' && req.method === 'PUT') {
+    try {
+      const body = await requestJson(req);
+      if (!Array.isArray(body?.accounts)) return json(res, 400, { error:'accounts must be an array' });
+      await writeAccounts(body.accounts);
+      return json(res, 200, { saved:true, count:body.accounts.length });
+    } catch (error) { return json(res, 400, { error:`Account data could not be saved: ${error.message}` }); }
+  }
   if (url.pathname === '/api/scan') {
     const started = performance.now();
     try {

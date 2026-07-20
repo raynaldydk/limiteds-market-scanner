@@ -1,0 +1,76 @@
+.account-summary {
+  display: grid;
+  grid-template-columns: repeat(9, 1fr);
+  padding: 0 36px;
+  border-bottom: 1px solid var(--line);
+}
+
+.account-summary div { padding: 18px 24px 18px 0; }
+.account-summary div + div { padding-left: 24px; border-left: 1px solid var(--line); }
+.account-summary span { display: block; color: var(--muted); font-size: 12px; text-transform: uppercase; }
+.account-summary b { display: block; margin-top: 6px; font-family: Georgia, serif; font-size: 23px; font-weight: 500; }
+.rate-card select { width: 100%; margin-top: 7px; padding: 7px; border: 1px solid #cbd1d8; border-radius: 3px; background: var(--paper); color: var(--ink); font-size: 15px; }
+html[data-theme="dark"] .rate-card select { border-color: #4a5664; background: #11161d; }
+.accounts-section { padding-bottom: 8px; }
+.accounts-table-wrap { overflow-x: auto; }
+.accounts-table { min-width: 1150px; table-layout: auto; }
+.accounts-table th { width: auto; white-space: nowrap; overflow-wrap: normal; }
+.accounts-table th:first-child,
+.accounts-table td:first-child { min-width: 150px; white-space: nowrap; }
+.limited-items { max-width: 280px; white-space: normal; word-break: normal; overflow-wrap: normal; line-height: 1.45; }
+.quota { white-space: nowrap; font-weight: 700; }
+.row-actions { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
+.row-actions button { width: 58px; padding: 7px 5px; font-size: 12px; text-align: center; }
+.account-status { color: var(--muted); font-weight: 700; }
+.account-status.active { color: var(--accent); }
+.account-avatar { display: inline-flex; align-items: center; gap: 7px; }
+.account-avatar > img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
+.profile-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--line); border-radius: 3px; background: var(--paper); }
+.profile-icon img { width: 18px; height: 18px; object-fit: contain; }
+.profile-icon:hover { border-color: var(--accent); }
+.connection-status { margin: 18px 36px 0; padding: 11px 13px; border: 1px solid var(--line); color: var(--muted); }
+.connection-status.success { border-color: var(--accent); color: var(--accent); }
+.connection-status.error { border-color: #a33131; color: #a33131; }
+
+dialog {
+  width: min(700px, calc(100% - 32px));
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 20px 60px #0006;
+}
+
+dialog::backdrop { background: #10151bb8; }
+dialog form { padding: 24px; }
+.dialog-heading { display: flex; align-items: center; justify-content: space-between; }
+.dialog-heading h2 { margin: 0; font-family: Georgia, serif; font-size: 24px; font-weight: 500; }
+.icon-button { padding: 5px 10px; font-size: 22px; }
+.account-fields { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 22px; }
+.account-fields label { color: var(--muted); font-size: 13px; font-weight: 700; }
+.account-fields .wide { grid-column: 1 / -1; }
+.account-fields input, .account-fields select, .account-fields textarea {
+  display: block; width: 100%; margin-top: 6px; padding: 10px; border: 1px solid #cbd1d8;
+  border-radius: 3px; background: var(--paper); color: var(--ink); font: 15px Arial, sans-serif;
+}
+.dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 24px; }
+.form-note { margin: 12px 0 0; color: var(--muted); font-size: 13px; }
+
+html[data-theme="dark"] dialog,
+html[data-theme="dark"] .account-fields input,
+html[data-theme="dark"] .account-fields select,
+html[data-theme="dark"] .account-fields textarea { border-color: #4a5664; background: #11161d; }
+
+@media (max-width: 1100px) {
+  .account-summary { grid-template-columns: repeat(3, 1fr); }
+  .account-summary div:nth-child(3n + 1) { border-left: 0; padding-left: 0; }
+}
+
+@media (max-width: 750px) {
+  .account-summary { grid-template-columns: 1fr 1fr; padding: 0 18px; }
+  .account-summary div:nth-child(odd) { border-left: 0; padding-left: 0; }
+  .account-fields { grid-template-columns: 1fr; }
+  .account-fields .wide { grid-column: auto; }
+  .connection-status { margin: 14px 18px 0; }
+}

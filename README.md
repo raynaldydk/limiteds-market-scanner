@@ -17,6 +17,7 @@ Open:
 
 - Scan & Analysis: <http://127.0.0.1:8000>
 - Calculator: <http://127.0.0.1:8000/calculator.html>
+- Account Manager: <http://127.0.0.1:8000/accounts.html>
 
 The server binds to `127.0.0.1` by default.
 
@@ -74,6 +75,20 @@ Profit                     = Robux Sell IDR - Price IDR
 Profit / Cost              = Profit / Price IDR x 100
 ```
 
+## Account Manager
+
+The Account Manager adds accounts by exact Roblox username. It automatically retrieves the public user ID, display name, profile link, avatar, public collectible inventory, and total collectible RAP. The saved record also includes editable Robux, Robux Pending, Robux Send Limit, Robux Send Limit Used, and Robux Plus Status fields. Records are written to `data/accounts.json`, with browser storage retained as a migration and recovery backup. It requires no Roblox password, OAuth app, or `.ROBLOSECURITY` cookie. Private inventories cannot be retrieved.
+
+Each saved account includes icon links to its Roblox profile and Rolimon's player page.
+
+The Estimated Robux summary is `ROUND(0.7 x Limiteds RAP) + Robux + Robux Pending`, summed across saved accounts.
+
+The Account Manager includes a persistent Robux Sell Rate selector with 130, 135, and 140 IDR options. Estimated IDR is `Estimated Robux x selected Robux Sell Rate`.
+
+The Send Limit summary displays combined `Robux Send Limit Used / Robux Send Limit` across saved accounts.
+
+Each account row includes `Limited to Robux = ROUND(Limiteds RAP x 0.7)` and Quota displayed as `(Limited to Robux + Robux + Robux Pending) / (Robux Send Limit - Send Limit Used)`.
+
 ## Configuration
 
 | Environment variable | Default | Description |
@@ -110,6 +125,9 @@ static/rap.css          Report and navigation styling
 static/calculator.html  Standalone Calculator page
 static/calculator.js    Calculator formatting and formulas
 static/calculator.css   Viewport-fitted Calculator layout
+static/accounts.html    Local Account Manager page
+static/accounts.js      Browser-local account record management
+static/accounts.css     Account table and editor styling
 test/server.test.mjs    Scanner, RAP, sales, and calculation tests
 docs/ARCHITECTURE.md    Architecture, API schema, and operational notes
 ```
