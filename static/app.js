@@ -18,7 +18,7 @@ async function scan(force = false, silent = false) {
     scheduleRapPoll();
   } catch (error) {
     $('status').textContent = error.message;
-    $('grid').innerHTML = `<tr><td colspan="10" class="error">${escapeHtml(error.message)} — check your connection and try again.</td></tr>`;
+    $('grid').innerHTML = `<tr><td colspan="11" class="error">${escapeHtml(error.message)} — check your connection and try again.</td></tr>`;
   } finally {
     if (!silent) { $('scan').disabled = false; $('scan').textContent = 'Refresh report'; }
   }
@@ -67,6 +67,7 @@ function render() {
       <td><div class="item"><img src="${escapeHtml(x.thumbnail_url)}" alt="" loading="lazy"><strong>${escapeHtml(x.item_name)}</strong></div></td>
       <td><span class="category">${escapeHtml(x.category || 'Other')}</span></td>
       <td class="num price">${money(x.price_usd)}</td>
+      <td class="num muted">${number(x.market_rap)}</td>
       <td class="num">${x.rap == null ? `<span class="rap-state">${escapeHtml(x.rap_status)}</span>` : `${number(x.rap)}<small class="rap-source">Roblox</small>`}</td>
       <td class="num value">${x.usd_per_1k_rap ? money(x.usd_per_1k_rap) : '—'}</td>
       <td class="num muted">${x.rap_per_usd ? number(x.rap_per_usd) : '—'}</td>
@@ -77,7 +78,7 @@ function render() {
 }
 
 function exportCsv() {
-  const cols = ['item_name','category','price_usd','rap','rap_status','rap_checked_at','roblox_asset_id','roblox_collectible_item_id','usd_per_1k_rap','rap_per_usd','is_verified_seller','created_at','listing_url'];
+  const cols = ['item_name','category','price_usd','market_rap','rap','rap_status','rap_checked_at','roblox_asset_id','roblox_collectible_item_id','usd_per_1k_rap','rap_per_usd','is_verified_seller','created_at','listing_url'];
   const quote = v => `"${String(v ?? '').replaceAll('"','""')}"`;
   const csv = [cols.join(','), ...visibleItems.map(x => cols.map(c => quote(x[c])).join(','))].join('\r\n');
   const link = document.createElement('a'); link.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));

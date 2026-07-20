@@ -56,12 +56,19 @@ export async function fetchCurrentRap(name, existingAssetId = null, fetcher = fe
 
 function queueRapUpdates(items) {
   const now = Date.now();
-  for (const name of new Set(items.map(item => item.item_name))) {
+  const cheapestByName = new Map();
+  for (const item of items) {
+    const price = Number(item.price_usd || Infinity);
+    if (!cheapestByName.has(item.item_name) || price < cheapestByName.get(item.item_name)) cheapestByName.set(item.item_name, price);
+  }
+  const namesByLowestPrice = [...cheapestByName].sort((a, b) => a[1] - b[1]).map(([name]) => name);
+  for (const name of namesByLowestPrice) {
     const known = robloxData.get(name);
     if ((!known || now - known.checkedAt >= RAP_TTL) && !queuedNames.has(name)) {
       queuedNames.add(name); robloxQueue.push(name);
     }
   }
+  robloxQueue.sort((a, b) => (cheapestByName.get(a) ?? Infinity) - (cheapestByName.get(b) ?? Infinity));
   if (!queueRunning && robloxQueue.length) void processRapQueue();
 }
 
@@ -78,8 +85,11 @@ async function processRapQueue() {
   queueRunning = false;
 }
 
-export async function scanAll(force = false, fetcher = fetch, updateRap = true) {
+export async function scanAll(force = false, fetcher = fetch, updateRap = true, forceRap = false) {
   const now = Date.now();
+  if (forceRap) {
+    for (const value of robloxData.values()) value.checkedAt = 0;
+  }
   if (!force && cache.items.length && now - cache.at < CACHE_TTL) {
     const items = cache.items.map(item => ({ ...item }));
     if (updateRap) { queueRapUpdates(items); applyCurrentRap(items); }
@@ -128,7 +138,8 @@ export const server = createServer(async (req, res) => {
   if (url.pathname === '/api/scan') {
     const started = performance.now();
     try {
-      const result = await scanAll(url.searchParams.get('refresh') === '1');
+      const force = url.searchParams.get('refresh') === '1';
+      const result = await scanAll(force, fetch, true, force);
       return json(res, 200, { ...result, total: result.items.length, scanned_at: new Date().toISOString(), duration_ms: Math.round(performance.now() - started) });
     } catch (error) { return json(res, 502, { error: `Market scan failed: ${error.message}` }); }
   }

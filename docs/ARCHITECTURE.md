@@ -25,11 +25,11 @@ No listing data is stored on disk. The server keeps one snapshot in memory for t
 4. Pagination continues until the reported `totalPages` value is reached.
 5. Each item name is trimmed and queued for exact Roblox asset resolution.
 6. The report is returned immediately with unresolved RAP rows marked `updating`.
-7. A throttled background worker accepts only exact-name results created by the official Roblox account, resolves its migrated `CollectibleItemId`, then requests `recentAveragePrice` from Roblox Marketplace Sales.
+7. A throttled background worker processes unique item names in ascending order of their cheapest USD listing, accepts only exact-name results created by the official Roblox account, resolves its migrated `CollectibleItemId`, then requests `recentAveragePrice` from Roblox Marketplace Sales.
 8. The browser polls the local report while work remains and fills current RAP progressively.
 9. Browser-side filters and sorting operate on each updated snapshot.
 
-The report's **Refresh report** action requests `/api/scan?refresh=1`, which deliberately bypasses the snapshot cache.
+The report's **Refresh report** action requests `/api/scan?refresh=1`, which bypasses the market snapshot cache and expires confirmed Roblox RAP values. Previously resolved asset and collectible IDs are reused, so refreshes need only the Marketplace Sales request.
 
 ## Local endpoint
 

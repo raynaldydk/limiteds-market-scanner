@@ -22,10 +22,12 @@ On shells where the `npm` script shim is enabled, `npm start` works as well. The
 ## Features
 
 - Fetches every paginated listing, not only the first page
+- Shows Listed RAP and current Roblox RAP as separate columns
 - Search and filter by category, maximum price, and minimum RAP
 - Sort by value, price, RAP, or listing age
 - Retrieves current RAP from Roblox's migrated Marketplace Sales endpoint
 - Resolves exact names only when the creator is the official `Roblox` account
+- Prioritizes RAP lookups by each item's lowest-priced USD listing
 - Computes USD per 1,000 current RAP and RAP per USD
 - CSV export of the current filtered view
 - Direct links to the original listings
@@ -36,7 +38,8 @@ On shells where the `npm` script shim is enabled, `npm start` works as well. The
 | Column | Meaning |
 | --- | --- |
 | Price | Listing price in USD |
-| Current RAP | `recentAveragePrice` supplied by Roblox's economy endpoint |
+| Listed RAP | Value/RAP supplied with the Limiteds Market listing |
+| Roblox RAP | Current `recentAveragePrice` supplied by Roblox Marketplace Sales |
 | USD / 1K RAP | `price_usd × 1,000 ÷ RAP`; lower values represent more RAP per dollar |
 | RAP / USD | `RAP ÷ price_usd`; higher values represent more RAP per dollar |
 | Seller | Verified or standard seller status |
@@ -60,7 +63,7 @@ npm.cmd start
 
 ## Local API
 
-`GET /api/scan` returns the normalized market report as JSON. Add `?refresh=1` to bypass the 30-second snapshot cache.
+`GET /api/scan` returns the normalized market report as JSON. Add `?refresh=1` to bypass the market cache and queue a fresh Roblox RAP lookup using known IDs where available.
 
 ```text
 GET http://127.0.0.1:8000/api/scan?refresh=1
