@@ -26,6 +26,7 @@ The server binds to `127.0.0.1` by default.
 - Converts listing prices using LimitedsMarket's current IDR rate
 - Displays Price IDR including the 5.3% tax
 - Resolves exact catalog names created by the official Roblox account
+- Resolves migrated Face items with Roblox catalog search v2, then reads the collectible ID from their official Dynamic Head bundle
 - Retrieves current RAP and 30-day resale volume from Roblox
 - Calculates average daily sales over the trailing 30 UTC days
 - Prioritizes RAP updates using each item's lowest-priced listing
@@ -34,7 +35,7 @@ The server binds to `127.0.0.1` by default.
 - Selectable Robux Sell Rates of 130, 135, and 140 IDR
 - Live Robux sale, profit, and profit-to-cost analysis
 - CSV export of the filtered report
-- Links to LimitedsMarket, Roblox, and Rolimon's item pages
+- Links migrated Faces to their Roblox and Rolimon's bundle pages; ordinary limiteds use item pages
 
 ## Report formulas
 

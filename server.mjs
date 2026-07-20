@@ -13,6 +13,7 @@ const CURRENCY_TTL = Number(process.env.CURRENCY_TTL_SECONDS || 3600) * 1000;
 const robloxData = new Map();
 const robloxQueue = [];
 const queuedNames = new Set();
+const categoryByName = new Map();
 const RAP_TTL = Number(process.env.RAP_TTL_SECONDS || 300) * 1000;
 let queueRunning = false;
 
@@ -37,28 +38,51 @@ async function fetchJson(url, fetcher = fetch) {
   throw new Error('Roblox rate limit persisted');
 }
 
-export async function fetchCurrentRap(name, existingAssetId = null, fetcher = fetch, existingCollectibleItemId = null) {
+export async function fetchCurrentRap(name, existingAssetId = null, fetcher = fetch, existingCollectibleItemId = null, category = null, existingBundleId = null) {
   let assetId = existingAssetId;
   let collectibleItemId = existingCollectibleItemId;
+  let bundleId = existingBundleId;
   if (!assetId) {
-    const params = new URLSearchParams({ Category:'1', Keyword:name, Limit:'10' });
-    const catalog = await fetchJson(`https://catalog.roblox.com/v1/search/items/details?${params}`, fetcher);
     const normalized = name.trim().toLocaleLowerCase();
-    const match = (catalog.data || []).find(item =>
-      String(item.name || '').trim().toLocaleLowerCase() === normalized && item.creatorName === 'Roblox'
-    );
-    if (!match) return { assetId:null, collectibleItemId:null, rap:null, status:'unmatched', checkedAt:Date.now() };
-    assetId = match.id;
+    const isFace = String(category || '').toLocaleLowerCase() === 'face';
+    const searches = isFace
+      ? [{ version:'v2', params:new URLSearchParams({ Category:'1', CreatorName:'Roblox', Keyword:name, Limit:'30' }), allowBundle:true }]
+      : [{ version:'v1', params:new URLSearchParams({ Category:'1', Keyword:name, Limit:'30' }), allowBundle:false }];
+    let match = null;
+    for (const { version, params, allowBundle } of searches) {
+      const catalog = await fetchJson(`https://catalog.roblox.com/${version}/search/items/details?${params}`, fetcher);
+      match = (catalog.data || []).find(item =>
+        [normalized, `${normalized} head`].includes(String(item.name || '').trim().toLocaleLowerCase()) &&
+        String(item.creatorName || '').toLocaleLowerCase() === 'roblox' &&
+        ['asset', ...(allowBundle ? ['bundle'] : [])].includes(String(item.itemType || 'Asset').toLocaleLowerCase())
+      );
+      if (match) break;
+    }
+    if (!match) return { assetId:null, bundleId:null, collectibleItemId:null, rap:null, status:'unmatched', checkedAt:Date.now() };
+    if (String(match.itemType || 'Asset').toLocaleLowerCase() === 'bundle') {
+      bundleId = match.id;
+      const bundle = await fetchJson(`https://catalog.roblox.com/v1/bundles/${match.id}/details`, fetcher);
+      collectibleItemId = bundle.collectibleItemDetail?.collectibleItemId || bundle.collectibleItemId || null;
+      const bundledAsset = (bundle.items || bundle.bundledItems || []).find(item =>
+        String(item.type || '').toLocaleLowerCase() === 'asset' && (() => {
+          const itemName = String(item.name || '').trim().toLocaleLowerCase();
+          return itemName === normalized || (itemName.includes(normalized) && itemName.includes('head'));
+        })()
+      );
+      assetId = bundledAsset?.id || bundledAsset?.Id || null;
+    } else assetId = match.id;
+    if (!assetId) return { assetId:null, bundleId, collectibleItemId:null, rap:null, status:'unmatched', checkedAt:Date.now() };
   }
   if (!collectibleItemId) {
     const details = await fetchJson(`https://economy.roblox.com/v2/assets/${assetId}/details`, fetcher);
     collectibleItemId = details.CollectibleItemId || details.collectibleItemId || null;
   }
-  if (!collectibleItemId) return { assetId, collectibleItemId:null, rap:null, status:'unavailable', checkedAt:Date.now() };
+  if (!collectibleItemId) return { assetId, bundleId, collectibleItemId:null, rap:null, status:'unavailable', checkedAt:Date.now() };
   const resale = await fetchJson(`https://apis.roblox.com/marketplace-sales/v1/item/${collectibleItemId}/resale-data`, fetcher);
   const sales = calculateAverageDailySales(resale.volumeDataPoints || []);
   return {
     assetId,
+    bundleId,
     collectibleItemId,
     rap: Number.isFinite(resale.recentAveragePrice) ? resale.recentAveragePrice : null,
     sales30d: sales.total,
@@ -89,6 +113,7 @@ function queueRapUpdates(items) {
   const now = Date.now();
   const cheapestByName = new Map();
   for (const item of items) {
+    categoryByName.set(item.item_name, item.category || null);
     const price = Number(item.price_usd || Infinity);
     if (!cheapestByName.has(item.item_name) || price < cheapestByName.get(item.item_name)) cheapestByName.set(item.item_name, price);
   }
@@ -108,8 +133,8 @@ async function processRapQueue() {
   while (robloxQueue.length) {
     const name = robloxQueue.shift();
     const existing = robloxData.get(name);
-    try { robloxData.set(name, await fetchCurrentRap(name, existing?.assetId, fetch, existing?.collectibleItemId)); }
-    catch { robloxData.set(name, { assetId:existing?.assetId || null, collectibleItemId:existing?.collectibleItemId || null, rap:null, status:'retrying', checkedAt:Date.now() - RAP_TTL + 30000 }); }
+    try { robloxData.set(name, await fetchCurrentRap(name, existing?.assetId, fetch, existing?.collectibleItemId, categoryByName.get(name), existing?.bundleId)); }
+    catch { robloxData.set(name, { assetId:existing?.assetId || null, bundleId:existing?.bundleId || null, collectibleItemId:existing?.collectibleItemId || null, rap:null, status:'retrying', checkedAt:Date.now() - RAP_TTL + 30000 }); }
     queuedNames.delete(name);
     await wait(750);
   }
@@ -152,7 +177,7 @@ export async function scanAll(force = false, fetcher = fetch, updateRap = true, 
   return { items, cached: false };
 }
 
-export function clearCache() { cache.at = 0; cache.items = []; currencyCache.at = 0; currencyCache.idrRate = null; robloxData.clear(); robloxQueue.length = 0; queuedNames.clear(); }
+export function clearCache() { cache.at = 0; cache.items = []; currencyCache.at = 0; currencyCache.idrRate = null; robloxData.clear(); robloxQueue.length = 0; queuedNames.clear(); categoryByName.clear(); }
 
 function applyCurrentRap(items) {
   for (const item of items) {
@@ -162,9 +187,14 @@ function applyCurrentRap(items) {
     item.robux_sell = calculateRobuxSell(current?.rap);
     item.rap_status = current?.status || (queuedNames.has(item.item_name) ? 'updating' : 'queued');
     item.roblox_asset_id = current?.assetId || null;
+    item.roblox_bundle_id = current?.bundleId || null;
     item.roblox_collectible_item_id = current?.collectibleItemId || null;
-    item.roblox_url = current?.assetId ? `https://www.roblox.com/catalog/${current.assetId}` : null;
-    item.rolimons_url = current?.assetId ? `https://www.rolimons.com/item/${current.assetId}` : null;
+    item.roblox_url = current?.bundleId
+      ? `https://www.roblox.com/bundles/${current.bundleId}`
+      : current?.assetId ? `https://www.roblox.com/catalog/${current.assetId}` : null;
+    item.rolimons_url = current?.bundleId
+      ? `https://www.rolimons.com/bundle/${current.bundleId}`
+      : current?.assetId ? `https://www.rolimons.com/item/${current.assetId}` : null;
     item.rap_checked_at = current?.checkedAt ? new Date(current.checkedAt).toISOString() : null;
     item.sales_30d = current?.sales30d ?? null;
     item.avg_daily_sales_30d = current?.avgDailySales30d ?? null;
