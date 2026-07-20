@@ -23,6 +23,8 @@ On shells where the `npm` script shim is enabled, `npm start` works as well. The
 
 - Fetches every paginated listing, not only the first page
 - Shows Listed RAP and current Roblox RAP as separate columns
+- Converts USD prices with Limiteds Market's current IDR rate
+- Shows after-tax IDR as `price_idr × 105.3%`
 - Search and filter by category, maximum price, and minimum RAP
 - Sort by value, price, RAP, or listing age
 - Retrieves current RAP from Roblox's migrated Marketplace Sales endpoint
@@ -37,13 +39,12 @@ On shells where the `npm` script shim is enabled, `npm start` works as well. The
 
 | Column | Meaning |
 | --- | --- |
-| Price | Listing price in USD |
+| Price IDR | USD price converted with Limiteds Market's IDR rate |
+| After tax IDR | `USD price × IDR rate × 1.053` |
 | Listed RAP | Value/RAP supplied with the Limiteds Market listing |
 | Roblox RAP | Current `recentAveragePrice` supplied by Roblox Marketplace Sales |
-| USD / 1K RAP | `price_usd × 1,000 ÷ RAP`; lower values represent more RAP per dollar |
-| RAP / USD | `RAP ÷ price_usd`; higher values represent more RAP per dollar |
-| Seller | Verified or standard seller status |
-| Listed | Listing creation date |
+| IDR / 1K RAP | `price_idr × 1,000 ÷ RAP`; lower values represent more RAP per rupiah |
+| Listed | Listing creation timestamp formatted as `dd/mm/yyyy:hh.mm.ss` |
 
 ## Configuration
 
@@ -52,6 +53,7 @@ On shells where the `npm` script shim is enabled, `npm start` works as well. The
 | `PORT` | `8000` | Local HTTP port |
 | `CACHE_TTL_SECONDS` | `30` | Time before the server fetches a fresh market snapshot |
 | `RAP_TTL_SECONDS` | `300` | Time before a confirmed Roblox RAP is refreshed |
+| `CURRENCY_TTL_SECONDS` | `3600` | Time before the Limiteds Market IDR rate is refreshed |
 
 Example:
 

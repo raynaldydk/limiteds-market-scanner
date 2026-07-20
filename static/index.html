@@ -16,7 +16,7 @@
 
     <section class="report-meta">
       <div><span>Listings</span><b id="total">—</b></div>
-      <div><span>Best USD / 1K RAP</span><b id="best">—</b></div>
+      <div><span>Best IDR / 1K RAP</span><b id="best">—</b></div>
       <div><span>Combined current RAP</span><b id="rap">—</b></div>
       <div><span>Generated</span><b id="last">—</b><small id="status">connecting</small></div>
     </section>
@@ -24,7 +24,7 @@
     <section class="toolbar">
       <input id="search" type="search" placeholder="Search item name…">
       <select id="category"><option value="">All categories</option></select>
-      <label>Max $ <input id="maxPrice" type="number" min="0" step="1" placeholder="Any"></label>
+      <label>Max IDR <input id="maxPrice" type="number" min="0" step="100000" placeholder="Any"></label>
       <label>Min RAP <input id="minRap" type="number" min="0" step="1000" placeholder="Any"></label>
       <select id="sort">
         <option value="value">Best value</option><option value="priceAsc">Price: low to high</option>
@@ -37,7 +37,7 @@
     <div class="table-heading"><h2>Active listings</h2><p id="resultCount" class="result-count"></p></div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>#</th><th>Item</th><th>Category</th><th class="num">Price</th><th class="num">Listed RAP</th><th class="num">Roblox RAP</th><th class="num">USD / 1K RAP</th><th class="num">RAP / USD</th><th>Seller</th><th>Listed</th><th></th></tr></thead>
+        <thead><tr><th>#</th><th>Item</th><th>Category</th><th class="num">Price IDR</th><th class="num">After tax IDR</th><th class="num">Listed RAP</th><th class="num">Roblox RAP</th><th class="num">IDR / 1K RAP</th><th>Listed</th><th></th></tr></thead>
         <tbody id="grid"></tbody>
       </table>
     </div>

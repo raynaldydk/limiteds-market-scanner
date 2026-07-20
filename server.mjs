@@ -8,6 +8,8 @@ const API_URL = `${BASE_URL}/api/listings`;
 const ROOT = fileURLToPath(new URL('./static/', import.meta.url));
 const CACHE_TTL = Number(process.env.CACHE_TTL_SECONDS || 30) * 1000;
 const cache = { at: 0, items: [] };
+const currencyCache = { at: 0, idrRate: null };
+const CURRENCY_TTL = Number(process.env.CURRENCY_TTL_SECONDS || 3600) * 1000;
 const robloxData = new Map();
 const robloxQueue = [];
 const queuedNames = new Set();
@@ -15,6 +17,15 @@ const RAP_TTL = Number(process.env.RAP_TTL_SECONDS || 300) * 1000;
 let queueRunning = false;
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+
+async function getIdrRate(force, fetcher) {
+  if (!force && currencyCache.idrRate && Date.now() - currencyCache.at < CURRENCY_TTL) return currencyCache.idrRate;
+  const rates = await fetchJson('https://limitedsmarket.com/api/currency/rates', fetcher);
+  const idrRate = Number(rates.IDR);
+  if (!Number.isFinite(idrRate) || idrRate <= 0) throw new Error('Limiteds Market returned an invalid IDR rate');
+  currencyCache.at = Date.now(); currencyCache.idrRate = idrRate;
+  return idrRate;
+}
 
 async function fetchJson(url, fetcher = fetch) {
   for (let attempt = 0; attempt < 4; attempt++) {
@@ -106,9 +117,14 @@ export async function scanAll(force = false, fetcher = fetch, updateRap = true, 
     if (page >= Number(data.totalPages || 1)) break;
     page++;
   }
+  const idrRate = await getIdrRate(force, fetcher);
   for (const item of items) {
+    const price = Number(item.price_usd || 0);
     item.market_rap = Number(item.rap || 0);
     item.item_name = String(item.item_name || 'Unknown').trim();
+    item.idr_rate = idrRate;
+    item.price_idr = Math.round(price * idrRate);
+    item.after_tax_idr = Math.round(price * idrRate * 1.053);
     item.listing_url = `${BASE_URL}/listing/${item.id || ''}`;
   }
   if (updateRap) { queueRapUpdates(items); applyCurrentRap(items); }
@@ -116,19 +132,18 @@ export async function scanAll(force = false, fetcher = fetch, updateRap = true, 
   return { items, cached: false };
 }
 
-export function clearCache() { cache.at = 0; cache.items = []; robloxData.clear(); robloxQueue.length = 0; queuedNames.clear(); }
+export function clearCache() { cache.at = 0; cache.items = []; currencyCache.at = 0; currencyCache.idrRate = null; robloxData.clear(); robloxQueue.length = 0; queuedNames.clear(); }
 
 function applyCurrentRap(items) {
   for (const item of items) {
     const current = robloxData.get(item.item_name);
-    const price = Number(item.price_usd || 0), rap = Number(current?.rap || 0);
+    const rap = Number(current?.rap || 0);
     item.rap = current?.rap ?? null;
     item.rap_status = current?.status || (queuedNames.has(item.item_name) ? 'updating' : 'queued');
     item.roblox_asset_id = current?.assetId || null;
     item.roblox_collectible_item_id = current?.collectibleItemId || null;
     item.rap_checked_at = current?.checkedAt ? new Date(current.checkedAt).toISOString() : null;
-    item.usd_per_1k_rap = rap ? Math.round(price * 10000000 / rap) / 10000 : null;
-    item.rap_per_usd = price && rap ? Math.round(rap / price * 100) / 100 : null;
+    item.idr_per_1k_rap = rap ? Math.round(item.price_idr * 1000 / rap) : null;
   }
 }
 

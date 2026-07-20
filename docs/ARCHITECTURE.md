@@ -67,9 +67,11 @@ The scanner preserves the listing fields received from Limiteds Market and adds:
 
 | Field | Type | Description |
 | --- | --- | --- |
-| `usd_per_1k_rap` | number or `null` | Listing USD price per 1,000 RAP |
-| `rap_per_usd` | number or `null` | RAP represented by one USD of listing price |
 | `listing_url` | string | Original Limiteds Market listing URL |
+| `idr_rate` | number | IDR units per USD from Limiteds Market's currency endpoint |
+| `price_idr` | number | Rounded listing price converted to IDR |
+| `after_tax_idr` | number | Rounded IDR price after multiplying by `1.053` |
+| `idr_per_1k_rap` | number or `null` | IDR listing price per 1,000 current Roblox RAP |
 | `market_rap` | number | Original marketplace RAP retained for diagnostics only |
 | `rap` | number or `null` | Current Roblox `recentAveragePrice`; never falls back to `market_rap` |
 | `rap_status` | string | `queued`, `updating`, `current`, `unmatched`, `unavailable`, or `retrying` |
@@ -84,8 +86,9 @@ Metrics are `null` when their divisor is zero. They are presentation aids, not f
 The browser keeps the latest response in memory and applies all search, category, price, RAP, and sort controls locally. CSV export includes only the currently filtered rows and uses these columns:
 
 ```text
-item_name, category, price_usd, rap, usd_per_1k_rap,
-rap_per_usd, is_verified_seller, created_at, listing_url
+item_name, category, idr_rate, price_idr, after_tax_idr,
+market_rap, rap, rap_status, rap_checked_at, roblox_asset_id,
+roblox_collectible_item_id, idr_per_1k_rap, created_at, listing_url
 ```
 
 ## Security and operational notes
