@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { calculateAverageDailySales, calculateRobuxSell, clearCache, fetchCurrentRap, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
+import { applyRobuxSale, calculateAverageDailySales, calculateRobuxSell, clearCache, fetchCurrentRap, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
 
 test('scans all pages and calculates metrics', async () => {
   clearCache(); let calls = 0;
@@ -105,4 +105,13 @@ test('resolves a public Roblox account and collectible inventory by username', a
   assert.equal(account.avatarUrl, 'https://tr.rbxcdn.com/avatar.png');
   assert.deepEqual(account.limitedItems, ['Limited One','Limited Two']);
   assert.equal(account.limitedRapTotal, 3500);
+});
+
+test('applies a Robux sale to balance and send-limit usage', () => {
+  const accounts = [{id:'account-1',username:'SourceUser',robux:5000,sendLimit:10000,sendLimitUsed:2500}];
+  const result = applyRobuxSale(accounts, {accountId:'account-1',robuxSold:1200,rate:135}, new Date('2026-07-20T12:00:00Z'));
+  assert.equal(result.updatedAccount.robux, 3800);
+  assert.equal(result.updatedAccount.sendLimitUsed, 3700);
+  assert.equal(result.sale.price, 162000);
+  assert.equal(result.sale.usernameSource, 'SourceUser');
 });

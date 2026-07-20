@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Sell Robux | Limiteds Market Scanner</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/rap.css">
+  <link rel="stylesheet" href="/sell-robux.css">
+  <script src="/theme.js"></script>
+</head>
+<body class="sell-page">
+  <main>
+    <nav class="page-nav" aria-label="Main navigation">
+      <a href="/">Scan &amp; Analysis</a>
+      <a href="/calculator.html">Calculator</a>
+      <a href="/accounts.html">Account Manager</a>
+      <a class="active" href="/sell-robux.html">Sell Robux</a>
+      <button class="theme-toggle secondary" type="button" aria-label="Switch color theme">Dark mode</button>
+    </nav>
+
+    <header>
+      <div><p class="eyebrow">SALES RECORDS</p><h1>Sell Robux</h1><p class="subtitle">Record Robux sales and update source-account balances and send-limit usage.</p></div>
+    </header>
+
+    <section class="sale-layout">
+      <form id="saleForm" class="sale-form">
+        <h2>New sale</h2>
+        <label>Username Source <select id="sourceAccount" required><option value="">Select account</option></select></label>
+        <p id="sourceBalance" class="source-balance">Select a source account.</p>
+        <label>Robux Sold <input id="robuxSold" type="number" min="1" step="1" required placeholder="0"></label>
+        <label>Rate <select id="saleRate"><option value="130" selected>130</option><option value="135">135</option><option value="140">140</option></select></label>
+        <label>Price <output id="salePrice">Rp0</output></label>
+        <p id="saleStatus" class="sale-status" hidden></p>
+        <button type="submit">Insert record</button>
+      </form>
+
+      <div class="sale-right">
+        <section class="sale-summary">
+          <div><span>Records</span><b id="saleCount">0</b></div>
+          <div><span>Robux Sold</span><b id="totalRobuxSold">0</b></div>
+          <div><span>Total Price</span><b id="totalSalePrice">Rp0</b></div>
+        </section>
+        <section class="sales-section">
+          <div class="table-heading"><h2>Sales history</h2><p class="result-count">Saved to data/robux-sales.json</p></div>
+          <div class="table-wrap sales-table-wrap"><table class="sales-table"><thead><tr><th>Username Source</th><th class="num">Robux Sold</th><th class="num">Rate</th><th class="num">Price</th><th>Created</th></tr></thead><tbody id="salesGrid"></tbody></table></div>
+          <div id="salesEmpty" class="empty">No Robux sales recorded yet.</div>
+        </section>
+      </div>
+    </section>
+  </main>
+  <footer>Each inserted sale subtracts Robux and increases send-limit usage on its source account.</footer>
+  <script src="/sell-robux.js"></script>
+</body>
+</html>
