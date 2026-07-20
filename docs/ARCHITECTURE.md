@@ -22,6 +22,8 @@ Static pages:
 - `/` - Scan & Analysis report backed by `GET /api/scan`
 - `/calculator.html` - client-side purchase profitability calculator
 
+Both pages load `theme.js`. The top-right Light/Dark toggle stores the selected theme in browser `localStorage` under `limiteds-market-theme`, so the preference persists across pages and reloads. Theme colors are applied with shared CSS custom properties and `data-theme` on the root document element.
+
 ## Scan lifecycle
 
 1. The browser requests `GET /api/scan`.
