@@ -157,6 +157,8 @@ function applyCurrentRap(items) {
     item.rap_status = current?.status || (queuedNames.has(item.item_name) ? 'updating' : 'queued');
     item.roblox_asset_id = current?.assetId || null;
     item.roblox_collectible_item_id = current?.collectibleItemId || null;
+    item.roblox_url = current?.assetId ? `https://www.roblox.com/catalog/${current.assetId}` : null;
+    item.rolimons_url = current?.assetId ? `https://www.rolimons.com/item/${current.assetId}` : null;
     item.rap_checked_at = current?.checkedAt ? new Date(current.checkedAt).toISOString() : null;
     item.sales_30d = current?.sales30d ?? null;
     item.avg_daily_sales_30d = current?.avgDailySales30d ?? null;

@@ -80,6 +80,8 @@ The scanner preserves the listing fields received from Limiteds Market and adds:
 | `rap_checked_at` | string or `null` | ISO timestamp of the Roblox lookup |
 | `roblox_asset_id` | number or `null` | Exact official Roblox catalog asset ID |
 | `roblox_collectible_item_id` | string or `null` | Migrated collectible identifier used by Marketplace Sales |
+| `rolimons_url` | string or `null` | Rolimon's public item-page URL built from the resolved asset ID |
+| `roblox_url` | string or `null` | Roblox catalog detail URL built from the resolved asset ID |
 
 Metrics are `null` when their divisor is zero. They are presentation aids, not financial advice or estimates of future sale value.
 
@@ -91,7 +93,7 @@ The browser keeps the latest response in memory and applies all search, category
 item_name, category, idr_rate, price_idr, after_tax_idr,
 market_rap, rap, rap_status, rap_checked_at, roblox_asset_id,
 roblox_collectible_item_id, sales_30d, avg_daily_sales_30d,
-idr_per_1k_rap, created_at, listing_url
+idr_per_1k_rap, created_at, listing_url, roblox_url, rolimons_url
 ```
 
 ## Security and operational notes

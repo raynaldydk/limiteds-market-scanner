@@ -34,6 +34,7 @@ On shells where the `npm` script shim is enabled, `npm start` works as well. The
 - Computes USD per 1,000 current RAP and RAP per USD
 - CSV export of the current filtered view
 - Direct links to the original listings
+- Direct Rolimon's item-page links after exact Roblox asset resolution
 - No credentials, cookies, browser automation, or third-party Python packages
 
 ## Report columns

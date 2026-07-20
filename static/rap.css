@@ -3,3 +3,42 @@
   font-size: 10px;
   text-transform: capitalize;
 }
+
+.item-title {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.item-name {
+  color: var(--ink);
+  font-size: 13px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.item-name:hover {
+  color: var(--accent);
+  text-decoration: underline;
+}
+
+.rolimons-link {
+  display: inline-flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 2px;
+  color: var(--muted);
+  font-size: 10px;
+  text-decoration: none;
+}
+
+.rolimons-link img {
+  width: 16px;
+  height: 16px;
+  border: 0;
+  background: transparent;
+}
+
+.rolimons-link:hover {
+  color: var(--accent);
+}
