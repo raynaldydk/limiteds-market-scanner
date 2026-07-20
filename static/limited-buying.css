@@ -1,0 +1,44 @@
+.buying-layout { display:grid; grid-template-columns:minmax(310px,350px) minmax(0,1fr); gap:24px; padding:24px 36px 32px; }
+.purchase-form { padding:22px; border:1px solid var(--line); background:#fafafa; }
+.purchase-form h2 { margin:0 0 16px; font-family:Georgia,serif; font-size:23px; font-weight:500; }
+.purchase-form label { display:block; margin-top:12px; color:var(--muted); font-size:12px; font-weight:700; }
+.purchase-form input,.purchase-form select { display:block; width:100%; margin-top:5px; padding:9px 10px; border:1px solid #cbd1d8; border-radius:3px; background:var(--paper); color:var(--ink); font-size:15px; }
+.purchase-form button { width:100%; margin-top:16px; }
+.purchase-form .calculated-field { display:flex; align-items:center; justify-content:space-between; margin-top:6px; padding:8px 10px; border:1px solid var(--line); background:var(--paper); }
+.calculated-field span { color:var(--muted); font-size:11px; text-transform:uppercase; }
+.calculated-field b { color:var(--ink); font-size:15px; }
+.item-scan-row { display:flex; gap:7px; }
+.item-scan-row input { min-width:0; }
+.item-scan-row button { flex:0 0 auto; width:auto; margin-top:5px; padding:9px 11px; white-space:nowrap; }
+.scan-status { margin:7px 0 0; font-size:12px; }
+.scan-status.success { color:var(--accent); }
+.scan-status.error { color:#b42318; }
+.form-estimate { display:grid; grid-template-columns:1fr auto; gap:7px 14px; margin-top:16px; padding:12px; border:1px solid var(--line); }
+.form-estimate span { color:var(--muted); font-size:11px; text-transform:uppercase; }
+.form-estimate b { text-align:right; }
+.purchase-status { padding:9px; border:1px solid var(--line); font-size:12px; }
+.purchase-status.success { border-color:var(--accent); color:var(--accent); }
+.purchase-status.error,.negative { color:#b42318 !important; }
+.purchase-report { min-width:0; }
+.purchase-summary { display:grid; grid-template-columns:repeat(4,1fr); border:1px solid var(--line); }
+.purchase-summary div { padding:20px; border-right:1px solid var(--line); }
+.purchase-summary div:last-child { border-right:0; }
+.purchase-summary span { display:block; color:var(--muted); font-size:11px; text-transform:uppercase; }
+.purchase-summary b { display:block; margin-top:7px; font-family:Georgia,serif; font-size:22px; font-weight:500; }
+.purchase-report .table-heading { padding:22px 0 10px; }
+.purchase-table-wrap { width:100%; margin:0; overflow-x:auto; }
+.purchase-table { min-width:840px; table-layout:fixed; white-space:normal; }
+.purchase-table th,.purchase-table td { padding:8px 7px; overflow-wrap:anywhere; }
+.purchase-table th { line-height:1.25; white-space:normal; }
+.purchase-table th:nth-child(1) { width:11%; }
+.purchase-table th:nth-child(2) { width:18%; }
+.purchase-table th:nth-child(3),.purchase-table th:nth-child(4) { width:8%; }
+.purchase-table th:nth-child(5),.purchase-table th:nth-child(6) { width:12%; }
+.purchase-table th:nth-child(7) { width:11%; }
+.purchase-table th:nth-child(8) { width:10%; }
+.purchase-table th:nth-child(9) { width:10%; }
+.purchase-table td:nth-child(1),.purchase-table td:nth-child(2) { white-space:normal; }
+.purchase-table .date { white-space:normal; line-height:1.35; }
+html[data-theme="dark"] .purchase-form { background:#1c232c; }
+html[data-theme="dark"] .purchase-form input,html[data-theme="dark"] .purchase-form select { border-color:#4a5664; background:#11161d; }
+@media(max-width:900px){.buying-layout{grid-template-columns:1fr;padding:20px 18px}.purchase-summary{grid-template-columns:1fr}.purchase-summary div{border-right:0;border-bottom:1px solid var(--line)}}

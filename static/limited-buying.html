@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Limited Buying | Limiteds Market Scanner</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/rap.css">
+  <link rel="stylesheet" href="/limited-buying.css">
+  <script src="/theme.js"></script>
+</head>
+<body>
+  <main>
+    <nav class="page-nav" aria-label="Main navigation">
+      <a href="/">Scan &amp; Analysis</a>
+      <a href="/calculator.html">Calculator</a>
+      <a href="/accounts.html">Account Manager</a>
+      <a href="/sell-robux.html">Sell Robux</a>
+      <a class="active" href="/limited-buying.html">Limited Buying</a>
+      <button class="theme-toggle secondary" type="button" aria-label="Switch color theme">Dark mode</button>
+    </nav>
+
+    <header>
+      <div><p class="eyebrow">PURCHASE RECORDS</p><h1>Limited Buying</h1><p class="subtitle">Track after-tax purchase cost and estimated resale profit.</p></div>
+    </header>
+
+    <section class="buying-layout">
+      <form id="purchaseForm" class="purchase-form">
+        <h2>New purchase</h2>
+        <label>Username <select id="username" required><option value="">Select Account Manager username</option></select></label>
+        <label>Item Name <span class="item-scan-row"><input id="itemName" required autocomplete="off" placeholder="Exact limited item name"><button id="scanRap" class="secondary" type="button">Scan RAP</button></span></label>
+        <p id="rapScanStatus" class="scan-status" hidden></p>
+        <label>RAP <input id="rap" type="number" min="1" step="1" required placeholder="0"><span class="calculated-field"><span>70% RAP</span><b id="robuxSellPreview">0</b></span></label>
+        <label>Purchase Price After Tax <input id="purchasePrice" inputmode="numeric" required placeholder="Rp0"></label>
+        <label>Robux Sell Rate <select id="purchaseRate"><option value="130" selected>130</option><option value="135">135</option><option value="140">140</option></select></label>
+        <label>Date <input id="purchasedAt" type="datetime-local" required></label>
+        <div class="form-estimate"><span>Est. Revenue</span><b id="revenuePreview">Rp0</b><span>Minimum Robux Sell</span><b id="minimumPreview">0</b><span>Profit Est.</span><b id="profitPreview">Rp0</b></div>
+        <p id="purchaseStatus" class="purchase-status" hidden></p>
+        <button type="submit">Add purchase</button>
+      </form>
+
+      <section class="purchase-report">
+        <div class="purchase-summary">
+          <div><span>Records</span><b id="purchaseCount">0</b></div>
+          <div><span>Total Cost</span><b id="totalCost">Rp0</b></div>
+          <div><span>Est. Revenue</span><b id="totalRevenue">Rp0</b></div>
+          <div><span>Profit Est.</span><b id="totalProfit">Rp0</b></div>
+        </div>
+        <div class="table-heading"><h2>Purchase history</h2><p class="result-count">Saved to data/limited-purchases.json</p></div>
+        <div class="table-wrap purchase-table-wrap"><table class="purchase-table"><thead><tr><th>Username</th><th>Item Name</th><th class="num">RAP</th><th class="num">70% RAP</th><th class="num">Purchase Price</th><th class="num">Est. Revenue</th><th>Date</th><th class="num">Min. Robux Sell</th><th class="num">Profit Est.</th></tr></thead><tbody id="purchaseGrid"></tbody></table></div>
+        <div id="purchaseEmpty" class="empty">No limited purchases recorded yet.</div>
+      </section>
+    </section>
+  </main>
+  <footer>Profit estimate uses 70% of RAP at the sell rate saved with each purchase.</footer>
+  <script src="/limited-buying.js"></script>
+</body>
+</html>

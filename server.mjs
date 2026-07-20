@@ -8,6 +8,7 @@ const API_URL = `${BASE_URL}/api/listings`;
 const ROOT = fileURLToPath(new URL('./static/', import.meta.url));
 const ACCOUNT_DATA_PATH = fileURLToPath(new URL('./data/accounts.json', import.meta.url));
 const ROBUX_SALES_PATH = fileURLToPath(new URL('./data/robux-sales.json', import.meta.url));
+const LIMITED_PURCHASES_PATH = fileURLToPath(new URL('./data/limited-purchases.json', import.meta.url));
 const SELLER_MAP_PATH = fileURLToPath(new URL('./data/seller-map.json', import.meta.url));
 const CACHE_TTL = Number(process.env.CACHE_TTL_SECONDS || 30) * 1000;
 const cache = { at: 0, items: [] };
@@ -70,6 +71,48 @@ async function readRobuxSales() {
 async function writeRobuxSales(sales) {
   await mkdir(fileURLToPath(new URL('./data/', import.meta.url)), { recursive:true });
   await writeFile(ROBUX_SALES_PATH, `${JSON.stringify(sales, null, 2)}\n`, 'utf8');
+}
+
+async function readLimitedPurchases() {
+  try {
+    const purchases = JSON.parse(await readFile(LIMITED_PURCHASES_PATH, 'utf8'));
+    return Array.isArray(purchases) ? purchases : [];
+  } catch (error) {
+    if (error.code === 'ENOENT') return [];
+    throw error;
+  }
+}
+
+async function writeLimitedPurchases(purchases) {
+  await mkdir(fileURLToPath(new URL('./data/', import.meta.url)), { recursive:true });
+  await writeFile(LIMITED_PURCHASES_PATH, `${JSON.stringify(purchases, null, 2)}\n`, 'utf8');
+}
+
+export function createLimitedPurchase(input, now = new Date()) {
+  const username = String(input.username || '').trim();
+  const itemName = String(input.itemName || '').trim();
+  const rap = Math.round(Number(input.rap));
+  const purchasePrice = Math.round(Number(input.purchasePrice));
+  const rate = Number(input.rate);
+  const purchasedAt = new Date(input.purchasedAt || now);
+  if (!username) throw new Error('Username is required');
+  if (!itemName) throw new Error('Item name is required');
+  if (!Number.isFinite(rap) || rap <= 0) throw new Error('RAP must be greater than zero');
+  if (!Number.isFinite(purchasePrice) || purchasePrice <= 0) throw new Error('Purchase price must be greater than zero');
+  if (![130, 135, 140].includes(rate)) throw new Error('Rate must be 130, 135, or 140');
+  if (Number.isNaN(purchasedAt.getTime())) throw new Error('Purchase date is invalid');
+  const estimatedRobuxSell = Math.round(rap * 0.7);
+  const estimatedRevenue = estimatedRobuxSell * rate;
+  return {
+    id:`purchase-${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
+    username, itemName, rap, purchasePrice, rate,
+    purchasedAt:purchasedAt.toISOString(),
+    robuxSell70:estimatedRobuxSell,
+    estimatedRevenue,
+    minimumRobuxSell:Math.ceil(purchasePrice / rate),
+    profitEstimate:estimatedRevenue - purchasePrice,
+    createdAt:now.toISOString()
+  };
 }
 
 async function applySellerMapping(items) {
@@ -207,6 +250,14 @@ export async function fetchCurrentRap(name, existingAssetId = null, fetcher = fe
     status: Number.isFinite(resale.recentAveragePrice) ? 'current' : 'unavailable',
     checkedAt: Date.now()
   };
+}
+
+export async function fetchCurrentRapByName(name, fetcher = fetch) {
+  const trimmedName = String(name || '').trim();
+  if (!trimmedName) throw new Error('Item name is required');
+  const regular = await fetchCurrentRap(trimmedName, null, fetcher);
+  if (regular.status !== 'unmatched') return regular;
+  return fetchCurrentRap(trimmedName, null, fetcher, null, 'Face');
 }
 
 export function calculateAverageDailySales(points, now = Date.now()) {
@@ -357,6 +408,26 @@ export const server = createServer(async (req, res) => {
       try { await writeAccounts(result.accounts); }
       catch (error) { await writeRobuxSales(sales); throw error; }
       return json(res, 201, { sale:result.sale, account:result.updatedAccount });
+    } catch (error) { return json(res, 400, { error:error.message }); }
+  }
+  if (url.pathname === '/api/roblox/rap') {
+    try {
+      const name = String(url.searchParams.get('name') || '').trim();
+      const result = await fetchCurrentRapByName(name, fetch);
+      if (!Number.isFinite(result.rap)) return json(res, 404, { error:'Current RAP was not found for that exact item name.' });
+      return json(res, 200, result);
+    } catch (error) { return json(res, 502, { error:`RAP lookup failed: ${error.message}` }); }
+  }
+  if (url.pathname === '/api/limited-purchases' && req.method === 'GET') {
+    try { return json(res, 200, { purchases:await readLimitedPurchases() }); }
+    catch (error) { return json(res, 500, { error:`Limited purchases could not be read: ${error.message}` }); }
+  }
+  if (url.pathname === '/api/limited-purchases' && req.method === 'POST') {
+    try {
+      const purchase = createLimitedPurchase(await requestJson(req));
+      const purchases = await readLimitedPurchases();
+      await writeLimitedPurchases([purchase, ...purchases]);
+      return json(res, 201, { purchase });
     } catch (error) { return json(res, 400, { error:error.message }); }
   }
   if (url.pathname === '/api/scan') {

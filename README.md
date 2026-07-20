@@ -19,6 +19,7 @@ Open:
 - Calculator: <http://127.0.0.1:8000/calculator.html>
 - Account Manager: <http://127.0.0.1:8000/accounts.html>
 - Sell Robux: <http://127.0.0.1:8000/sell-robux.html>
+- Limited Buying: <http://127.0.0.1:8000/limited-buying.html>
 
 The server binds to `127.0.0.1` by default.
 
@@ -97,6 +98,10 @@ Each account row includes `Limited to Robux = ROUND(Limiteds RAP x 0.7)` and Quo
 
 The Sell Robux page records a source username, Robux sold, a rate of 130/135/140, calculated IDR price, and timestamp. Inserting a record subtracts `Robux Sold` from the selected account's Robux balance and adds it to Robux Send Limit Used. A sale is rejected when the account lacks Robux or remaining send limit. Records persist in the Git-ignored `data/robux-sales.json` file. The username filter and 1/7/30-day period toggle update both the KPI cards and sales history while retaining the desktop one-viewport layout.
 
+## Limited Buying
+
+The Limited Buying page assigns each purchase to a username selected from Account Manager and records item name, RAP, after-tax purchase price, purchase date, and a Robux sell rate. `Scan RAP` looks up current Roblox RAP from the exact item name and supports the face/dynamic-head fallback. The page calculates `70% RAP = ROUND(0.7 x RAP)`, `Est. Revenue = 70% RAP x Rate`, `Minimum Robux Sell = CEILING(Purchase Price / Rate)`, and `Profit Est. = Est. Revenue - Purchase Price`. Purchases persist locally in the Git-ignored `data/limited-purchases.json` file.
+
 ## Configuration
 
 | Environment variable | Default | Description |
@@ -139,6 +144,9 @@ static/accounts.css     Account table and editor styling
 static/sell-robux.html  Robux sale entry and history page
 static/sell-robux.js    Sale calculations and account updates
 static/sell-robux.css   Sale form and history styling
+static/limited-buying.html  Limited purchase entry and history page
+static/limited-buying.js    Purchase calculations and persistence UI
+static/limited-buying.css   Limited purchase report styling
 test/server.test.mjs    Scanner, RAP, sales, and calculation tests
 docs/ARCHITECTURE.md    Architecture, API schema, and operational notes
 ```
