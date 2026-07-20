@@ -151,6 +151,62 @@ button {
     padding: 12px 18px;
   }
 }
+.theme-toggle {
+  margin-left: auto;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+html[data-theme="dark"] {
+  color-scheme: dark;
+  --paper: #151a21;
+  --page: #0d1117;
+  --ink: #edf2f7;
+  --muted: #aab4c0;
+  --line: #343d48;
+  --accent: #39b88f;
+  --soft: #173b31;
+}
+
+html[data-theme="dark"] main,
+html[data-theme="dark"] .calculator-results div {
+  background: var(--paper);
+}
+
+html[data-theme="dark"] .page-nav,
+html[data-theme="dark"] .toolbar,
+html[data-theme="dark"] th,
+html[data-theme="dark"] .calculator-form,
+html[data-theme="dark"] .calculator-results h2 {
+  background: #1c232c;
+}
+
+html[data-theme="dark"] .secondary,
+html[data-theme="dark"] .toolbar input,
+html[data-theme="dark"] .toolbar select,
+html[data-theme="dark"] .calculator-form input,
+html[data-theme="dark"] .calculator-form select,
+html[data-theme="dark"] .source-toggle span {
+  border-color: #4a5664;
+  background: #11161d;
+  color: var(--ink);
+}
+
+html[data-theme="dark"] tbody tr:hover {
+  background: #1a222b;
+}
+
+html[data-theme="dark"] .item img {
+  border-color: var(--line);
+  background: #202832;
+}
+
+html[data-theme="dark"] .source-toggle input:checked + span {
+  border-color: var(--accent);
+  background: var(--accent);
+  color: #07120f;
+}
+
 .page-nav {
   display: flex;
   gap: 6px;

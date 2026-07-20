@@ -36,6 +36,7 @@ The server binds to `127.0.0.1` by default.
 - Live Robux sale, profit, and profit-to-cost analysis
 - CSV export of the filtered report
 - Links migrated Faces to their Roblox and Rolimon's bundle pages; ordinary limiteds use item pages
+- Persistent Light/Dark mode toggle shared by Scan & Analysis and Calculator
 
 ## Report formulas
 
