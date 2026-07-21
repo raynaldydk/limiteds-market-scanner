@@ -5,10 +5,10 @@
 .calculator-page main {
   display: flex;
   flex-direction: column;
-  width: calc(100% - 24px);
-  height: calc(100vh - 24px);
+  width: auto;
+  height: calc(100vh - 56px);
   min-height: 0;
-  margin: 12px auto;
+  margin: 28px auto;
   overflow: hidden;
 }
 
@@ -17,15 +17,15 @@
 }
 
 .calculator-page header {
-  padding: 20px 36px 16px;
+  padding: 32px 36px 24px;
 }
 
 .calculator-page h1 {
-  font-size: 30px;
+  font-size: 34px;
 }
 
 .calculator-page .eyebrow {
-  margin-bottom: 5px;
+  margin-bottom: 8px;
 }
 
 .calculator-layout {
