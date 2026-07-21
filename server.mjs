@@ -99,6 +99,10 @@ export function applyPlusExpirations(accounts, now = new Date()) {
   return { accounts:updated, changed };
 }
 
+export function calculateAccountAssetValue(sendLimit) {
+  return Math.max(0, Math.round(Number(sendLimit) || 0)) >= 10000 ? 25000 : 0;
+}
+
 export function createLimitedPurchase(input, now = new Date()) {
   const allowedTypes = ['limited', 'subscription', 'robux', 'account', 'other'];
   const purchaseType = allowedTypes.includes(input.purchaseType) ? input.purchaseType : 'limited';
@@ -148,7 +152,8 @@ export function applyPurchaseToAccounts(accounts, purchase, publicAccount = null
       username:publicAccount.username, displayName:publicAccount.displayName,
       avatarUrl:publicAccount.avatarUrl, profileUrl:publicAccount.profileUrl,
       limitedItems:publicAccount.limitedItems.join(', '), limitedRapTotal:Math.max(0, Math.round(Number(publicAccount.limitedRapTotal) || 0)),
-      robux:0, robuxPending:0, sendLimit:0, sendLimitUsed:0, plusStatus:'inactive'
+      robux:0, robuxPending:0, sendLimit:0, sendLimitUsed:0, plusStatus:'inactive',
+      underage:publicAccount.username.toLocaleLowerCase() === 'sssssssel6'
     };
     return { accounts:[...accounts, updatedAccount], updatedAccount };
   }

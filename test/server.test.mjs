@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyPlusExpirations, applyPurchaseToAccounts, applyRobuxSale, calculateAverageDailySales, calculateRobuxSell, clearCache, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
+import { applyPlusExpirations, applyPurchaseToAccounts, applyRobuxSale, calculateAccountAssetValue, calculateAverageDailySales, calculateRobuxSell, clearCache, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
 
 test('scans all pages and calculates metrics', async () => {
   clearCache(); let calls = 0;
@@ -172,6 +172,20 @@ test('adds a purchased Roblox account to Account Manager', () => {
   assert.equal(result.updatedAccount.id, 'roblox-999');
   assert.equal(result.updatedAccount.limitedRapTotal, 1234);
   assert.equal(result.updatedAccount.robux, 0);
+  assert.equal(result.updatedAccount.underage, false);
+});
+
+test('values accounts as assets from their send limit tier', () => {
+  assert.equal(calculateAccountAssetValue(10000), 25000);
+  assert.equal(calculateAccountAssetValue(45000), 25000);
+  assert.equal(calculateAccountAssetValue(1000), 0);
+});
+
+test('marks sssssssel6 as underage when purchasing the account', () => {
+  const purchase = createLimitedPurchase({ purchaseType:'account', accountUsername:'sssssssel6', purchasePrice:500000, rate:130, purchasedAt:'2026-07-21T12:00:00Z' });
+  const publicAccount = {robloxUserId:'1000',username:'sssssssel6',displayName:'Seller',avatarUrl:'avatar.png',profileUrl:'profile',limitedItems:[],limitedRapTotal:0};
+  const result = applyPurchaseToAccounts([], purchase, publicAccount);
+  assert.equal(result.updatedAccount.underage, true);
 });
 
 test('deducts a Robux-paid Limited purchase from its account', () => {

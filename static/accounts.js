@@ -5,6 +5,8 @@ const integer = value => Math.max(0, Math.round(Number(value) || 0));
 const formatNumber = value => new Intl.NumberFormat('en-US').format(value);
 const formatIdr = value => new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', maximumFractionDigits:0 }).format(value);
 const formatDateOnly = value => value ? new Intl.DateTimeFormat('en-GB').format(new Date(value)) : '';
+const isUnderage = account => String(account.username || '').toLocaleLowerCase() === 'sssssssel6' || account.underage === true;
+const accountAssetValue = account => integer(account.sendLimit) >= 10000 ? 25000 : 0;
 
 let accounts = loadAccounts();
 try { byId('accountSellRate').value = localStorage.getItem(SELL_RATE_KEY) || '130'; } catch {}
@@ -31,7 +33,10 @@ async function loadStoredAccounts() {
     const response = await fetch('/api/accounts');
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Account file could not be loaded');
-    if (data.accounts.length) accounts = data.accounts;
+    if (data.accounts.length) {
+      accounts = data.accounts.map(account => ({ ...account, underage:isUnderage(account) }));
+      await saveAccounts();
+    }
     else if (browserBackup.length) await saveAccounts();
     render();
     if (accounts.length) await refreshInventories(true);
@@ -109,8 +114,9 @@ function render() {
   const estimatedRobux = accounts.reduce((sum, account) =>
     sum + Math.round(integer(account.limitedRapTotal) * 0.7) + integer(account.robux) + integer(account.robuxPending), 0);
   const sellRate = Number(byId('accountSellRate').value);
+  const accountAssets = accounts.reduce((sum, account) => sum + accountAssetValue(account), 0);
   byId('estimatedRobux').textContent = formatNumber(estimatedRobux);
-  byId('estimatedIdr').textContent = formatIdr(estimatedRobux * sellRate);
+  byId('estimatedIdr').textContent = formatIdr(estimatedRobux * sellRate + accountAssets);
   byId('accountsEmpty').hidden = accounts.length > 0;
   byId('accountsGrid').innerHTML = accounts.map(account => {
     const limitedToRobux = Math.round(integer(account.limitedRapTotal) * 0.7);
@@ -127,8 +133,10 @@ function render() {
       <td class="num">${formatNumber(integer(account.robuxPending))}</td>
       <td class="num">${formatNumber(integer(account.sendLimit))}</td>
       <td class="num">${formatNumber(integer(account.sendLimitUsed))}</td>
+      <td class="num">${formatIdr(accountAssetValue(account))}</td>
       <td class="num quota">${formatNumber(estimatedAccountRobux)} / ${formatNumber(remainingSendLimit)}</td>
       <td><span class="account-status ${account.plusStatus === 'active' ? 'active' : ''}">${account.plusStatus === 'active' ? 'Active' : 'Inactive'}</span>${account.plusExpiresAt ? `<small class="plus-expiry">Until ${formatDateOnly(account.plusExpiresAt)}</small>` : ''}</td>
+      <td><span class="underage-status ${isUnderage(account) ? 'true' : 'false'}">${isUnderage(account) ? 'True' : 'False'}</span></td>
       <td><div class="row-actions"><button class="edit-account secondary" data-id="${escapeHtml(account.id)}" type="button">Edit</button><button class="delete-account secondary" data-id="${escapeHtml(account.id)}" type="button">Delete</button></div></td>
     </tr>`;
   }).join('');
@@ -146,6 +154,7 @@ function openDialog(account) {
   byId('sendLimit').value = integer(account?.sendLimit);
   byId('sendLimitUsed').value = integer(account?.sendLimitUsed);
   byId('plusStatus').value = account?.plusStatus || 'inactive';
+  byId('underage').value = isUnderage(account) ? 'true' : 'false';
   byId('accountDialog').showModal();
   byId('username').focus();
 }
@@ -158,7 +167,7 @@ byId('accountForm').addEventListener('submit', event => {
     ...existing, id, username:byId('username').value.trim(), avatarUrl:byId('avatarUrl').value.trim(),
     limitedItems:byId('limitedItems').value.trim(), robux:integer(byId('robux').value), robuxPending:integer(byId('robuxPending').value),
     sendLimit:integer(byId('sendLimit').value), sendLimitUsed:integer(byId('sendLimitUsed').value),
-    plusStatus:byId('plusStatus').value
+    plusStatus:byId('plusStatus').value, underage:byId('underage').value === 'true'
   };
   const index = accounts.findIndex(item => item.id === id);
   if (index >= 0) accounts[index] = account;
@@ -187,7 +196,8 @@ async function syncPublicAccount(username) {
       ...existing, id, robloxUserId:data.robloxUserId, username:data.username, displayName:data.displayName,
       avatarUrl:data.avatarUrl, profileUrl:data.profileUrl, limitedItems:data.limitedItems.join(', '), limitedRapTotal:integer(data.limitedRapTotal),
       robux:integer(existing.robux), robuxPending:integer(existing.robuxPending), sendLimit:integer(existing.sendLimit),
-      sendLimitUsed:integer(existing.sendLimitUsed), plusStatus:existing.plusStatus || 'inactive'
+      sendLimitUsed:integer(existing.sendLimitUsed), plusStatus:existing.plusStatus || 'inactive',
+      underage:data.username.toLocaleLowerCase() === 'sssssssel6' || existing.underage === true
     };
     const index = accounts.findIndex(item => item.id === id);
     if (index >= 0) accounts[index] = account; else accounts.push(account);

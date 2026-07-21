@@ -43,7 +43,7 @@
       <div class="table-heading"><h2>Accounts</h2><p class="result-count">Saved to data/accounts.json</p></div>
       <div class="table-wrap accounts-table-wrap">
         <table class="accounts-table">
-          <thead><tr><th title="Roblox username">User</th><th title="Roblox avatar and profile links">Avatar &amp; Links</th><th title="Public limited item names">Limiteds</th><th class="num" title="Total Recent Average Price">RAP</th><th class="num" title="70% of Limiteds RAP">70% RAP</th><th class="num">Robux</th><th class="num" title="Pending Robux">Pending</th><th class="num" title="Robux Send Limit">Send Limit</th><th class="num" title="Robux Send Limit Used">Used</th><th class="num" title="Estimated Robux / remaining send limit">Quota</th><th title="Robux Plus Status">Plus Status</th><th></th></tr></thead>
+          <thead><tr><th title="Roblox username">User</th><th title="Roblox avatar and profile links">Avatar &amp; Links</th><th title="Public limited item names">Limiteds</th><th class="num" title="Total Recent Average Price">RAP</th><th class="num" title="70% of Limiteds RAP">70% RAP</th><th class="num">Robux</th><th class="num" title="Pending Robux">Pending</th><th class="num" title="Robux Send Limit">Send Limit</th><th class="num" title="Robux Send Limit Used">Used</th><th class="num" title="Account asset value based on send limit">Asset IDR</th><th class="num" title="Estimated Robux / remaining send limit">Quota</th><th title="Robux Plus Status">Plus Status</th><th title="Whether the account is underage">Underage</th><th></th></tr></thead>
           <tbody id="accountsGrid"></tbody>
         </table>
       </div>
@@ -64,6 +64,7 @@
         <label>Robux Send Limit <input id="sendLimit" type="number" min="0" step="1" value="0"></label>
         <label>Robux Send Limit Used <input id="sendLimitUsed" type="number" min="0" step="1" value="0"></label>
         <label>Robux Plus Status <select id="plusStatus"><option value="active">Active</option><option value="inactive" selected>Inactive</option></select></label>
+        <label>Underage <select id="underage"><option value="false" selected>False</option><option value="true">True</option></select></label>
       </div>
       <div class="dialog-actions"><button id="cancelAccount" class="secondary" type="button">Cancel</button><button type="submit">Save account</button></div>
     </form>
