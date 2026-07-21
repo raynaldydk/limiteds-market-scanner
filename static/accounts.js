@@ -4,6 +4,7 @@ const byId = id => document.getElementById(id);
 const integer = value => Math.max(0, Math.round(Number(value) || 0));
 const formatNumber = value => new Intl.NumberFormat('en-US').format(value);
 const formatIdr = value => new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', maximumFractionDigits:0 }).format(value);
+const formatDateOnly = value => value ? new Intl.DateTimeFormat('en-GB').format(new Date(value)) : '';
 
 let accounts = loadAccounts();
 try { byId('accountSellRate').value = localStorage.getItem(SELL_RATE_KEY) || '130'; } catch {}
@@ -127,7 +128,7 @@ function render() {
       <td class="num">${formatNumber(integer(account.sendLimit))}</td>
       <td class="num">${formatNumber(integer(account.sendLimitUsed))}</td>
       <td class="num quota">${formatNumber(estimatedAccountRobux)} / ${formatNumber(remainingSendLimit)}</td>
-      <td><span class="account-status ${account.plusStatus === 'active' ? 'active' : ''}">${account.plusStatus === 'active' ? 'Active' : 'Inactive'}</span></td>
+      <td><span class="account-status ${account.plusStatus === 'active' ? 'active' : ''}">${account.plusStatus === 'active' ? 'Active' : 'Inactive'}</span>${account.plusExpiresAt ? `<small class="plus-expiry">Until ${formatDateOnly(account.plusExpiresAt)}</small>` : ''}</td>
       <td><div class="row-actions"><button class="edit-account secondary" data-id="${escapeHtml(account.id)}" type="button">Edit</button><button class="delete-account secondary" data-id="${escapeHtml(account.id)}" type="button">Delete</button></div></td>
     </tr>`;
   }).join('');

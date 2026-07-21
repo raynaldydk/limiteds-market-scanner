@@ -88,29 +88,42 @@ async function writeLimitedPurchases(purchases) {
   await writeFile(LIMITED_PURCHASES_PATH, `${JSON.stringify(purchases, null, 2)}\n`, 'utf8');
 }
 
+export function applyPlusExpirations(accounts, now = new Date()) {
+  let changed = false;
+  const updated = accounts.map(account => {
+    if (account.plusStatus !== 'active' || !account.plusExpiresAt) return account;
+    if (new Date(account.plusExpiresAt).getTime() > now.getTime()) return account;
+    changed = true;
+    return { ...account, plusStatus:'inactive' };
+  });
+  return { accounts:updated, changed };
+}
+
 export function createLimitedPurchase(input, now = new Date()) {
-  const username = String(input.username || '').trim();
-  const itemName = String(input.itemName || '').trim();
+  const allowedTypes = ['limited', 'subscription', 'robux', 'account', 'other'];
+  const purchaseType = allowedTypes.includes(input.purchaseType) ? input.purchaseType : 'limited';
+  const username = String(input.username || '').trim() || 'Unassigned';
+  const itemName = String(input.itemName || input.description || (purchaseType === 'subscription' ? 'Roblox Plus' : '')).trim();
   const rap = Math.round(Number(input.rap));
   const purchasePrice = Math.round(Number(input.purchasePrice));
   const rate = Number(input.rate);
   const purchasedAt = new Date(input.purchasedAt || now);
-  if (!username) throw new Error('Username is required');
-  if (!itemName) throw new Error('Item name is required');
-  if (!Number.isFinite(rap) || rap <= 0) throw new Error('RAP must be greater than zero');
+  if (!itemName) throw new Error('Description is required');
+  if (purchaseType === 'subscription' && username === 'Unassigned') throw new Error('Account is required for a subscription purchase');
+  if (purchaseType === 'limited' && (!Number.isFinite(rap) || rap <= 0)) throw new Error('RAP must be greater than zero for a limited purchase');
   if (!Number.isFinite(purchasePrice) || purchasePrice <= 0) throw new Error('Purchase price must be greater than zero');
   if (![130, 135, 140].includes(rate)) throw new Error('Rate must be 130, 135, or 140');
   if (Number.isNaN(purchasedAt.getTime())) throw new Error('Purchase date is invalid');
-  const estimatedRobuxSell = Math.round(rap * 0.7);
-  const estimatedRevenue = estimatedRobuxSell * rate;
+  const estimatedRobuxSell = purchaseType === 'limited' ? Math.round(rap * 0.7) : null;
+  const estimatedRevenue = purchaseType === 'limited' ? estimatedRobuxSell * rate : null;
   return {
     id:`purchase-${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
-    username, itemName, rap, purchasePrice, rate,
+    purchaseType, username, itemName, rap:purchaseType === 'limited' ? rap : null, purchasePrice, rate,
     purchasedAt:purchasedAt.toISOString(),
     robuxSell70:estimatedRobuxSell,
     estimatedRevenue,
-    minimumRobuxSell:Math.ceil(purchasePrice / rate),
-    profitEstimate:estimatedRevenue - purchasePrice,
+    minimumRobuxSell:purchaseType === 'limited' ? Math.ceil(purchasePrice / rate) : null,
+    profitEstimate:purchaseType === 'limited' ? estimatedRevenue - purchasePrice : null,
     createdAt:now.toISOString()
   };
 }
@@ -383,7 +396,11 @@ export const server = createServer(async (req, res) => {
     } catch (error) { return json(res, 502, { error:`Roblox account lookup failed: ${error.message}` }); }
   }
   if (url.pathname === '/api/accounts' && req.method === 'GET') {
-    try { return json(res, 200, { accounts:await readAccounts() }); }
+    try {
+      const expiration = applyPlusExpirations(await readAccounts());
+      if (expiration.changed) await writeAccounts(expiration.accounts);
+      return json(res, 200, { accounts:expiration.accounts });
+    }
     catch (error) { return json(res, 500, { error:`Account data could not be read: ${error.message}` }); }
   }
   if (url.pathname === '/api/accounts' && req.method === 'PUT') {
@@ -427,6 +444,15 @@ export const server = createServer(async (req, res) => {
       const purchase = createLimitedPurchase(await requestJson(req));
       const purchases = await readLimitedPurchases();
       await writeLimitedPurchases([purchase, ...purchases]);
+      if (purchase.purchaseType === 'subscription') {
+        const accounts = await readAccounts();
+        const accountIndex = accounts.findIndex(account => account.username.toLocaleLowerCase() === purchase.username.toLocaleLowerCase());
+        if (accountIndex < 0) { await writeLimitedPurchases(purchases); throw new Error('Roblox Plus account was not found in Account Manager'); }
+        const expiresAt = new Date(new Date(purchase.purchasedAt).getTime() + 30 * 86400000).toISOString();
+        accounts[accountIndex] = { ...accounts[accountIndex], plusStatus:'active', plusPurchasedAt:purchase.purchasedAt, plusExpiresAt:expiresAt };
+        try { await writeAccounts(accounts); }
+        catch (error) { await writeLimitedPurchases(purchases); throw error; }
+      }
       return json(res, 201, { purchase });
     } catch (error) { return json(res, 400, { error:error.message }); }
   }

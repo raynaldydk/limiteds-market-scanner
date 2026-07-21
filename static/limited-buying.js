@@ -11,7 +11,7 @@ async function loadData() {
     if (!purchaseResponse.ok) throw new Error(purchaseData.error);
     if (!accountResponse.ok) throw new Error(accountData.error);
     purchases = purchaseData.purchases || [];
-    element('username').innerHTML = '<option value="">Select Account Manager username</option>' + (accountData.accounts || [])
+    element('username').innerHTML = '<option value="">Unassigned</option>' + (accountData.accounts || [])
       .sort((left, right) => left.username.localeCompare(right.username))
       .map(account => `<option value="${escapeHtml(account.username)}">${escapeHtml(account.username)}</option>`).join('');
     renderPurchases();
@@ -29,12 +29,28 @@ function renderPurchases() {
   element('totalProfit').textContent = idr(profit);
   element('totalProfit').classList.toggle('negative', profit < 0);
   element('purchaseEmpty').hidden = purchases.length > 0;
-  element('purchaseGrid').innerHTML = purchases.map(item => { const sell70=getRobuxSell70(item), revenue=getRevenue(item), profit=getProfit(item); return `<tr><td><strong>${escapeHtml(item.username)}</strong></td><td>${escapeHtml(item.itemName)}</td><td class="num">${number(item.rap)}</td><td class="num">${number(sell70)}</td><td class="num price">${idr(item.purchasePrice)}</td><td class="num">${idr(revenue)}</td><td class="date">${formatDate(item.purchasedAt)}</td><td class="num">${number(item.minimumRobuxSell)}</td><td class="num value ${profit < 0 ? 'negative' : ''}">${idr(profit)}</td></tr>`; }).join('');
+  element('purchaseGrid').innerHTML = purchases.map(item => { const limited=isLimited(item), sell70=getRobuxSell70(item), revenue=getRevenue(item), profit=getProfit(item); return `<tr><td><span class="purchase-type">${escapeHtml(typeLabel(item))}</span></td><td><strong>${escapeHtml(item.username || 'Unassigned')}</strong></td><td>${escapeHtml(item.itemName)}</td><td class="num">${limited ? number(item.rap) : '—'}</td><td class="num">${limited ? number(sell70) : '—'}</td><td class="num price">${idr(item.purchasePrice)}</td><td class="num">${limited ? idr(revenue) : '—'}</td><td class="date">${formatDate(item.purchasedAt)}</td><td class="num value ${limited && profit < 0 ? 'negative' : ''}">${limited ? idr(profit) : '—'}</td></tr>`; }).join('');
 }
 
-function getRobuxSell70(item) { return Number.isFinite(Number(item.robuxSell70)) ? Number(item.robuxSell70) : Math.round(Number(item.rap || 0) * 0.7); }
-function getRevenue(item) { return Number.isFinite(Number(item.estimatedRevenue)) ? Number(item.estimatedRevenue) : getRobuxSell70(item) * Number(item.rate || 0); }
-function getProfit(item) { return Number.isFinite(Number(item.profitEstimate)) ? Number(item.profitEstimate) : getRevenue(item) - Number(item.purchasePrice || 0); }
+function isLimited(item) { return (item.purchaseType || 'limited') === 'limited'; }
+function typeLabel(item) { const value=item.purchaseType || 'limited'; return value === 'subscription' ? 'Roblox Plus' : value.charAt(0).toUpperCase()+value.slice(1); }
+function getRobuxSell70(item) { if (!isLimited(item)) return 0; return Number.isFinite(Number(item.robuxSell70)) ? Number(item.robuxSell70) : Math.round(Number(item.rap || 0) * 0.7); }
+function getRevenue(item) { if (!isLimited(item)) return 0; return Number.isFinite(Number(item.estimatedRevenue)) ? Number(item.estimatedRevenue) : getRobuxSell70(item) * Number(item.rate || 0); }
+function getProfit(item) { if (!isLimited(item)) return 0; return Number.isFinite(Number(item.profitEstimate)) ? Number(item.profitEstimate) : getRevenue(item) - Number(item.purchasePrice || 0); }
+
+function updatePurchaseType() {
+  const type = element('purchaseType').value;
+  const limited = type === 'limited';
+  const subscription = type === 'subscription';
+  document.querySelectorAll('.limited-only').forEach(node => node.hidden = !limited);
+  element('rap').required = limited;
+  element('descriptionField').hidden = subscription;
+  element('itemName').required = !subscription;
+  element('username').required = subscription;
+  element('accountLabel').textContent = subscription ? 'Account' : 'Account / Owner';
+  if (!limited) element('rapScanStatus').hidden = true;
+  updatePreview();
+}
 
 function updatePreview() {
   const rap = Number(element('rap').value) || 0;
@@ -59,16 +75,17 @@ function setDefaultDate() { const now=new Date(), local=new Date(now.getTime()-n
 element('purchaseForm').addEventListener('submit', async event => {
   event.preventDefault();
   try {
-    const response = await fetch('/api/limited-purchases', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ username:element('username').value, itemName:element('itemName').value, rap:Number(element('rap').value), purchasePrice:parseIdr(element('purchasePrice').value), rate:Number(element('purchaseRate').value), purchasedAt:element('purchasedAt').value }) });
+    const response = await fetch('/api/limited-purchases', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ purchaseType:element('purchaseType').value, username:element('username').value, itemName:element('itemName').value, rap:Number(element('rap').value), purchasePrice:parseIdr(element('purchasePrice').value), rate:Number(element('purchaseRate').value), purchasedAt:element('purchasedAt').value }) });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Purchase could not be saved');
-    purchases.unshift(data.purchase); element('purchaseForm').reset(); setDefaultDate(); renderPurchases(); updatePreview(); showStatus('Purchase saved.');
+    purchases.unshift(data.purchase); element('purchaseForm').reset(); setDefaultDate(); updatePurchaseType(); renderPurchases(); showStatus('Purchase saved.');
   } catch (error) { showStatus(error.message, true); }
 });
 
 element('purchasePrice').addEventListener('input', formatIdrInput);
 element('rap').addEventListener('input', updatePreview);
 element('purchaseRate').addEventListener('change', updatePreview);
+element('purchaseType').addEventListener('change', updatePurchaseType);
 element('scanRap').addEventListener('click', async () => {
   const itemName = element('itemName').value.trim();
   if (!itemName) return showScanStatus('Enter an exact item name first.', true);
@@ -83,4 +100,4 @@ element('scanRap').addEventListener('click', async () => {
 });
 function escapeHtml(value) { const node=document.createElement('div'); node.textContent=String(value??''); return node.innerHTML; }
 function formatDate(value) { const date=new Date(value), pad=value=>String(value).padStart(2,'0'); return `${pad(date.getDate())}/${pad(date.getMonth()+1)}/${date.getFullYear()} ${pad(date.getHours())}.${pad(date.getMinutes())}`; }
-setDefaultDate(); updatePreview(); loadData();
+setDefaultDate(); updatePurchaseType(); loadData();
