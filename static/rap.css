@@ -55,6 +55,19 @@ button {
   color: var(--accent);
 }
 
+.listing-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  background: var(--paper);
+}
+.listing-icon img { width: 100%; height: 100%; object-fit: contain; }
+.listing-icon:hover { border-color: var(--accent); background: var(--soft); }
+
 .profit.positive {
   color: var(--accent);
   font-weight: 700;
@@ -76,12 +89,14 @@ button {
 }
 
 .column-sort {
+  position: relative;
   display: inline-flex;
   width: 100%;
+  min-width: 0;
   align-items: center;
   justify-content: inherit;
-  gap: 3px;
-  padding: 0;
+  gap: 0;
+  padding: 0 11px 0 0;
   border: 0;
   background: transparent;
   color: inherit;
@@ -90,8 +105,10 @@ button {
   letter-spacing: inherit;
   text-align: inherit;
   text-transform: inherit;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
-.column-sort span { color: #98a2b3; font-size: 9px; }
+.column-sort span { position: absolute; top: 50%; right: 0; color: #98a2b3; font-size: 9px; line-height: 1; transform: translateY(-50%); }
 .column-sort.active { color: var(--accent); }
 .column-sort.active span { color: var(--accent); }
 th.num .column-sort { justify-content: flex-end; }
@@ -131,6 +148,8 @@ html[data-theme="dark"] .value.negative-value {
     height: 32px;
     flex: 0 0 32px;
   }
+
+  .listing-icon { width: 32px; height: 32px; }
 
   .item-title {
     min-width: 0;
