@@ -18,10 +18,15 @@ Open:
 - Scan & Analysis: <http://127.0.0.1:8000>
 - Calculator: <http://127.0.0.1:8000/calculator.html>
 - Account Manager: <http://127.0.0.1:8000/accounts.html>
+- Executive Summary: <http://127.0.0.1:8000/executive-summary.html>
 - Sell Robux: <http://127.0.0.1:8000/sell-robux.html>
 - Buying: <http://127.0.0.1:8000/limited-buying.html>
 
 The server binds to `127.0.0.1` by default.
+
+## Executive Summary
+
+The Executive Summary combines Account Manager, Buying, and Sell Robux data. It reports account count and Plus status, Limiteds RAP, estimated Robux, portfolio IDR, purchase spending, sales revenue, net cash flow, liquid and pending Robux, account-level portfolio contribution with a Grand Total row, purchase mix, and the latest ten activities. `Estimated Robux = ROUND(70% x RAP) + Robux + Pending` per account, `Portfolio IDR = Estimated Robux x selected rate`, and `Net Cash Flow = Robux sales revenue - purchase spending`.
 
 ## Scan & Analysis
 
@@ -146,6 +151,9 @@ static/accounts.css     Account table and editor styling
 static/sell-robux.html  Robux sale entry and history page
 static/sell-robux.js    Sale calculations and account updates
 static/sell-robux.css   Sale form and history styling
+static/executive-summary.html Executive Summary dashboard
+static/executive-summary.js   Consolidated portfolio and activity calculations
+static/executive-summary.css  Dashboard KPI, table, and report styling
 static/limited-buying.html  Limited purchase entry and history page
 static/limited-buying.js    Purchase calculations and persistence UI
 static/limited-buying.css   Limited purchase report styling
