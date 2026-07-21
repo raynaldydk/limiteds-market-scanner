@@ -28,11 +28,12 @@
       <form id="purchaseForm" class="purchase-form">
         <h2>New purchase</h2>
         <label>Purchase Type <select id="purchaseType"><option value="limited" selected>Limited</option><option value="subscription">Roblox Plus</option><option value="robux">Robux</option><option value="account">Account</option><option value="other">Other</option></select></label>
-        <label><span id="accountLabel">Account / Owner</span> <select id="username"><option value="">Unassigned</option></select></label>
-        <label id="descriptionField">Description <span class="item-scan-row"><input id="itemName" required autocomplete="off" placeholder="What did you buy?"><button id="scanRap" class="secondary limited-only" type="button">Scan RAP</button></span></label>
+        <label id="accountField"><span id="accountLabel">Account / Owner</span> <select id="username"><option value="">Unassigned</option></select></label>
+        <label id="descriptionField"><span id="descriptionLabel">Description</span> <span class="item-scan-row"><input id="itemName" required autocomplete="off" placeholder="What did you buy?"><button id="scanRap" class="secondary limited-only" type="button">Scan RAP</button></span></label>
         <p id="rapScanStatus" class="scan-status limited-only" hidden></p>
         <label class="limited-only">RAP <input id="rap" type="number" min="1" step="1" placeholder="0"><span class="calculated-field"><span>70% RAP</span><b id="robuxSellPreview">0</b></span></label>
-        <label>Purchase Price <input id="purchasePrice" inputmode="numeric" required placeholder="Rp0"></label>
+        <label class="limited-only">Purchase With <select id="paymentMethod"><option value="idr" selected>IDR</option><option value="robux">Robux</option></select></label>
+        <label><span id="priceLabel">Purchase Price</span> <input id="purchasePrice" inputmode="numeric" required placeholder="Rp0"></label>
         <label class="limited-only">Robux Sell Rate <select id="purchaseRate"><option value="130" selected>130</option><option value="135">135</option><option value="140">140</option></select></label>
         <label>Date <input id="purchasedAt" type="datetime-local" required></label>
         <div class="form-estimate limited-only"><span>Est. Revenue</span><b id="revenuePreview">Rp0</b><span>Minimum Robux Sell</span><b id="minimumPreview">0</b><span>Profit Est.</span><b id="profitPreview">Rp0</b></div>
@@ -50,7 +51,7 @@
           <div><span>Profit Est.</span><b id="totalProfit">Rp0</b></div>
         </div>
         <div class="table-heading"><h2>Purchase history</h2><p class="result-count">Saved to data/limited-purchases.json</p></div>
-        <div class="table-wrap purchase-table-wrap"><table class="purchase-table"><thead><tr><th>Type</th><th>Account</th><th>Description</th><th class="num">RAP</th><th class="num">70% RAP</th><th class="num">Price</th><th class="num">Est. Revenue</th><th>Date</th><th class="num">Profit Est.</th></tr></thead><tbody id="purchaseGrid"></tbody></table></div>
+        <div class="table-wrap purchase-table-wrap"><table class="purchase-table"><thead><tr><th>Type</th><th>Account</th><th>Description</th><th class="num">RAP</th><th class="num">70% RAP</th><th class="num">Price / Cost</th><th class="num">Est. Revenue</th><th>Date</th><th class="num">Profit Est.</th></tr></thead><tbody id="purchaseGrid"></tbody></table></div>
         <div id="purchaseEmpty" class="empty">No purchases recorded yet.</div>
       </section>
     </section>

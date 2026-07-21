@@ -29,7 +29,7 @@ function renderPurchases() {
   element('totalProfit').textContent = idr(profit);
   element('totalProfit').classList.toggle('negative', profit < 0);
   element('purchaseEmpty').hidden = purchases.length > 0;
-  element('purchaseGrid').innerHTML = purchases.map(item => { const limited=isLimited(item), sell70=getRobuxSell70(item), revenue=getRevenue(item), profit=getProfit(item); return `<tr><td><span class="purchase-type">${escapeHtml(typeLabel(item))}</span></td><td><strong>${escapeHtml(item.username || 'Unassigned')}</strong></td><td>${escapeHtml(item.itemName)}</td><td class="num">${limited ? number(item.rap) : '—'}</td><td class="num">${limited ? number(sell70) : '—'}</td><td class="num price">${idr(item.purchasePrice)}</td><td class="num">${limited ? idr(revenue) : '—'}</td><td class="date">${formatDate(item.purchasedAt)}</td><td class="num value ${limited && profit < 0 ? 'negative' : ''}">${limited ? idr(profit) : '—'}</td></tr>`; }).join('');
+  element('purchaseGrid').innerHTML = purchases.map(item => { const limited=isLimited(item), sell70=getRobuxSell70(item), revenue=getRevenue(item), profit=getProfit(item), cost=item.paymentMethod === 'robux' ? `${number(item.robuxCost)} Robux` : idr(item.purchasePrice); return `<tr><td><span class="purchase-type">${escapeHtml(typeLabel(item))}</span></td><td><strong>${escapeHtml(item.username || 'Unassigned')}</strong></td><td>${escapeHtml(item.itemName)}</td><td class="num">${limited ? number(item.rap) : '—'}</td><td class="num">${limited ? number(sell70) : '—'}</td><td class="num price" title="${item.paymentMethod === 'robux' ? escapeHtml(`IDR cost basis: ${idr(item.purchasePrice)}`) : ''}">${cost}</td><td class="num">${limited ? idr(revenue) : '—'}</td><td class="date">${formatDate(item.purchasedAt)}</td><td class="num value ${limited && profit < 0 ? 'negative' : ''}">${limited ? idr(profit) : '—'}</td></tr>`; }).join('');
 }
 
 function isLimited(item) { return (item.purchaseType || 'limited') === 'limited'; }
@@ -42,20 +42,40 @@ function updatePurchaseType() {
   const type = element('purchaseType').value;
   const limited = type === 'limited';
   const subscription = type === 'subscription';
+  const robux = type === 'robux';
+  const account = type === 'account';
   document.querySelectorAll('.limited-only').forEach(node => node.hidden = !limited);
   element('rap').required = limited;
   element('descriptionField').hidden = subscription;
+  element('accountField').hidden = account;
   element('itemName').required = !subscription;
-  element('username').required = subscription;
-  element('accountLabel').textContent = subscription ? 'Account' : 'Account / Owner';
+  element('itemName').type = robux ? 'number' : 'text';
+  element('itemName').min = robux ? '1' : '';
+  element('itemName').step = robux ? '1' : '';
+  element('itemName').placeholder = robux ? 'Robux amount' : account ? 'Exact Roblox username' : 'What did you buy?';
+  element('descriptionLabel').textContent = robux ? 'Robux Amount' : account ? 'New Account Username' : 'Description';
+  updatePaymentMethod();
   if (!limited) element('rapScanStatus').hidden = true;
+  updatePreview();
+}
+
+function updatePaymentMethod() {
+  const limitedRobux = element('purchaseType').value === 'limited' && element('paymentMethod').value === 'robux';
+  const accountRequired = ['subscription','robux'].includes(element('purchaseType').value) || limitedRobux;
+  element('username').required = accountRequired;
+  element('accountLabel').textContent = accountRequired ? 'Account' : 'Account / Owner';
+  element('priceLabel').textContent = limitedRobux ? 'Purchase Price (Robux)' : 'Purchase Price';
+  const value = parseIdr(element('purchasePrice').value);
+  element('purchasePrice').placeholder = limitedRobux ? '0 Robux' : 'Rp0';
+  element('purchasePrice').value = value ? `${limitedRobux ? '' : 'Rp'}${number(value)}` : '';
   updatePreview();
 }
 
 function updatePreview() {
   const rap = Number(element('rap').value) || 0;
-  const price = parseIdr(element('purchasePrice').value);
+  const enteredPrice = parseIdr(element('purchasePrice').value);
   const rate = Number(element('purchaseRate').value);
+  const price = element('purchaseType').value === 'limited' && element('paymentMethod').value === 'robux' ? enteredPrice * rate : enteredPrice;
   const robuxSell70 = Math.round(rap * 0.7);
   const revenue = robuxSell70 * rate;
   element('robuxSellPreview').textContent = number(robuxSell70);
@@ -67,7 +87,7 @@ function updatePreview() {
 }
 
 function parseIdr(value) { return Number(String(value || '').replace(/\D/g, '')) || 0; }
-function formatIdrInput() { const value = parseIdr(element('purchasePrice').value); element('purchasePrice').value = value ? `Rp${number(value)}` : ''; updatePreview(); }
+function formatIdrInput() { const value = parseIdr(element('purchasePrice').value), robux=element('purchaseType').value === 'limited' && element('paymentMethod').value === 'robux'; element('purchasePrice').value = value ? `${robux ? '' : 'Rp'}${number(value)}` : ''; updatePreview(); }
 function showStatus(message, error = false) { element('purchaseStatus').hidden=false; element('purchaseStatus').textContent=message; element('purchaseStatus').className=`purchase-status ${error ? 'error' : 'success'}`; }
 function showScanStatus(message, error = false) { element('rapScanStatus').hidden=false; element('rapScanStatus').textContent=message; element('rapScanStatus').className=`scan-status ${error ? 'error' : 'success'}`; }
 function setDefaultDate() { const now=new Date(), local=new Date(now.getTime()-now.getTimezoneOffset()*60000); element('purchasedAt').value=local.toISOString().slice(0,16); }
@@ -75,7 +95,10 @@ function setDefaultDate() { const now=new Date(), local=new Date(now.getTime()-n
 element('purchaseForm').addEventListener('submit', async event => {
   event.preventDefault();
   try {
-    const response = await fetch('/api/limited-purchases', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ purchaseType:element('purchaseType').value, username:element('username').value, itemName:element('itemName').value, rap:Number(element('rap').value), purchasePrice:parseIdr(element('purchasePrice').value), rate:Number(element('purchaseRate').value), purchasedAt:element('purchasedAt').value }) });
+    const purchaseType = element('purchaseType').value;
+    const paymentMethod = purchaseType === 'limited' ? element('paymentMethod').value : 'idr';
+    const enteredPrice = parseIdr(element('purchasePrice').value);
+    const response = await fetch('/api/limited-purchases', { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ purchaseType, paymentMethod, username:element('username').value, itemName:['robux','account'].includes(purchaseType) ? '' : element('itemName').value, robuxAmount:purchaseType === 'robux' ? Number(element('itemName').value) : null, robuxCost:paymentMethod === 'robux' ? enteredPrice : null, accountUsername:purchaseType === 'account' ? element('itemName').value : null, rap:Number(element('rap').value), purchasePrice:paymentMethod === 'idr' ? enteredPrice : null, rate:Number(element('purchaseRate').value), purchasedAt:element('purchasedAt').value }) });
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Purchase could not be saved');
     purchases.unshift(data.purchase); element('purchaseForm').reset(); setDefaultDate(); updatePurchaseType(); renderPurchases(); showStatus('Purchase saved.');
@@ -86,6 +109,7 @@ element('purchasePrice').addEventListener('input', formatIdrInput);
 element('rap').addEventListener('input', updatePreview);
 element('purchaseRate').addEventListener('change', updatePreview);
 element('purchaseType').addEventListener('change', updatePurchaseType);
+element('paymentMethod').addEventListener('change', updatePaymentMethod);
 element('scanRap').addEventListener('click', async () => {
   const itemName = element('itemName').value.trim();
   if (!itemName) return showScanStatus('Enter an exact item name first.', true);
