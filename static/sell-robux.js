@@ -28,10 +28,10 @@ function renderAccounts() {
 
 function renderSales() {
   const username = element('historyUsername').value;
-  const cutoff = Date.now() - historyDays * 24 * 60 * 60 * 1000;
+  const cutoff = historyDays === null ? null : Date.now() - historyDays * 24 * 60 * 60 * 1000;
   const filteredSales = sales.filter(sale => {
     const matchesUsername = !username || sale.accountId === username || (!sale.accountId && sale.usernameSource === username);
-    return matchesUsername && new Date(sale.createdAt).getTime() >= cutoff;
+    return matchesUsername && (cutoff === null || new Date(sale.createdAt).getTime() >= cutoff);
   });
   element('saleCount').textContent = number(filteredSales.length);
   element('totalRobuxSold').textContent = number(filteredSales.reduce((sum, sale) => sum + Number(sale.robuxSold || 0), 0));
@@ -85,7 +85,7 @@ element('robuxSold').addEventListener('input', updatePrice);
 element('saleRate').addEventListener('change', updatePrice);
 element('historyUsername').addEventListener('change', renderSales);
 document.querySelectorAll('.period-toggle button').forEach(button => button.addEventListener('click', () => {
-  historyDays = Number(button.dataset.days);
+  historyDays = button.dataset.days === 'all' ? null : Number(button.dataset.days);
   document.querySelectorAll('.period-toggle button').forEach(item => item.classList.toggle('active', item === button));
   renderSales();
 }));
