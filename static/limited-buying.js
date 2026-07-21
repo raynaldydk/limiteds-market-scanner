@@ -29,14 +29,15 @@ function renderPurchases() {
   element('totalProfit').textContent = idr(profit);
   element('totalProfit').classList.toggle('negative', profit < 0);
   element('purchaseEmpty').hidden = purchases.length > 0;
-  element('purchaseGrid').innerHTML = purchases.map(item => { const limited=isLimited(item), sell70=getRobuxSell70(item), revenue=getRevenue(item), profit=getProfit(item), cost=item.paymentMethod === 'robux' ? `${number(item.robuxCost)} Robux` : idr(item.purchasePrice); return `<tr><td><span class="purchase-type">${escapeHtml(typeLabel(item))}</span></td><td><strong>${escapeHtml(item.username || 'Unassigned')}</strong></td><td>${escapeHtml(item.itemName)}</td><td class="num">${limited ? number(item.rap) : '—'}</td><td class="num">${limited ? number(sell70) : '—'}</td><td class="num price" title="${item.paymentMethod === 'robux' ? escapeHtml(`IDR cost basis: ${idr(item.purchasePrice)}`) : ''}">${cost}</td><td class="num">${limited ? idr(revenue) : '—'}</td><td class="date">${formatDate(item.purchasedAt)}</td><td class="num value ${limited && profit < 0 ? 'negative' : ''}">${limited ? idr(profit) : '—'}</td></tr>`; }).join('');
+  element('purchaseGrid').innerHTML = purchases.map(item => { const limited=isLimited(item), hasProfit=limited||isExpenseOnly(item), sell70=getRobuxSell70(item), revenue=getRevenue(item), profit=getProfit(item), cost=item.paymentMethod === 'robux' ? `${number(item.robuxCost)} Robux` : idr(item.purchasePrice); return `<tr><td><span class="purchase-type">${escapeHtml(typeLabel(item))}</span></td><td><strong>${escapeHtml(item.username || 'Unassigned')}</strong></td><td>${escapeHtml(item.itemName)}</td><td class="num">${limited ? number(item.rap) : '—'}</td><td class="num">${limited ? number(sell70) : '—'}</td><td class="num price" title="${item.paymentMethod === 'robux' ? escapeHtml(`IDR cost basis: ${idr(item.purchasePrice)}`) : ''}">${cost}</td><td class="num">${limited ? idr(revenue) : '—'}</td><td class="date">${formatDate(item.purchasedAt)}</td><td class="num value ${hasProfit && profit < 0 ? 'negative' : ''}">${hasProfit ? idr(profit) : '—'}</td></tr>`; }).join('');
 }
 
 function isLimited(item) { return (item.purchaseType || 'limited') === 'limited'; }
+function isExpenseOnly(item) { return ['subscription','robux','account'].includes(item.purchaseType); }
 function typeLabel(item) { const value=item.purchaseType || 'limited'; return value === 'subscription' ? 'Roblox Plus' : value.charAt(0).toUpperCase()+value.slice(1); }
 function getRobuxSell70(item) { if (!isLimited(item)) return 0; return Number.isFinite(Number(item.robuxSell70)) ? Number(item.robuxSell70) : Math.round(Number(item.rap || 0) * 0.7); }
 function getRevenue(item) { if (!isLimited(item)) return 0; return Number.isFinite(Number(item.estimatedRevenue)) ? Number(item.estimatedRevenue) : getRobuxSell70(item) * Number(item.rate || 0); }
-function getProfit(item) { if (!isLimited(item)) return 0; return Number.isFinite(Number(item.profitEstimate)) ? Number(item.profitEstimate) : getRevenue(item) - Number(item.purchasePrice || 0); }
+function getProfit(item) { if (isExpenseOnly(item)) return item.profitEstimate != null && Number.isFinite(Number(item.profitEstimate)) ? Number(item.profitEstimate) : -Number(item.purchasePrice || 0); if (!isLimited(item)) return 0; return Number.isFinite(Number(item.profitEstimate)) ? Number(item.profitEstimate) : getRevenue(item) - Number(item.purchasePrice || 0); }
 
 function updatePurchaseType() {
   const type = element('purchaseType').value;
