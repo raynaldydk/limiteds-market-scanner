@@ -317,6 +317,17 @@ export async function fetchCurrentRapByName(name, fetcher = fetch) {
   return fetchCurrentRap(trimmedName, null, fetcher, null, 'Face');
 }
 
+async function fetchRobloxItemThumbnail(result, fetcher = fetch) {
+  const isBundle = Boolean(result.bundleId);
+  const id = isBundle ? result.bundleId : result.assetId;
+  if (!id) return null;
+  const path = isBundle
+    ? `v1/bundles/thumbnails?bundleIds=${id}&size=420x420&format=Png&isCircular=false`
+    : `v1/assets?assetIds=${id}&size=420x420&format=Png&isCircular=false`;
+  const thumbnails = await fetchJson(`https://thumbnails.roblox.com/${path}`, fetcher);
+  return thumbnails.data?.[0]?.imageUrl || null;
+}
+
 export function calculateAverageDailySales(points, now = Date.now()) {
   const dayMs = 86400000;
   const todayUtc = Math.floor(now / dayMs) * dayMs;
@@ -476,7 +487,9 @@ export const server = createServer(async (req, res) => {
       const name = String(url.searchParams.get('name') || '').trim();
       const result = await fetchCurrentRapByName(name, fetch);
       if (!Number.isFinite(result.rap)) return json(res, 404, { error:'Current RAP was not found for that exact item name.' });
-      return json(res, 200, result);
+      let thumbnailUrl = null;
+      try { thumbnailUrl = await fetchRobloxItemThumbnail(result, fetch); } catch {}
+      return json(res, 200, { ...result, thumbnailUrl });
     } catch (error) { return json(res, 502, { error:`RAP lookup failed: ${error.message}` }); }
   }
   if (url.pathname === '/api/limited-purchases' && req.method === 'GET') {
