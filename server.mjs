@@ -102,14 +102,24 @@ export function applyPlusExpirations(accounts, now = new Date()) {
 export function createLimitedPurchase(input, now = new Date()) {
   const allowedTypes = ['limited', 'subscription', 'robux', 'account', 'other'];
   const purchaseType = allowedTypes.includes(input.purchaseType) ? input.purchaseType : 'limited';
-  const username = String(input.username || '').trim() || 'Unassigned';
-  const itemName = String(input.itemName || input.description || (purchaseType === 'subscription' ? 'Roblox Plus' : '')).trim();
+  const accountUsername = String(input.accountUsername || '').trim();
+  const username = purchaseType === 'account' ? accountUsername : String(input.username || '').trim() || 'Unassigned';
+  const robuxAmount = Math.round(Number(input.robuxAmount));
+  const paymentMethod = purchaseType === 'limited' && input.paymentMethod === 'robux' ? 'robux' : 'idr';
+  const robuxCost = Math.round(Number(input.robuxCost));
+  const generatedName = purchaseType === 'subscription' ? 'Roblox Plus' : purchaseType === 'robux' && robuxAmount > 0 ? `${robuxAmount.toLocaleString('en-US')} Robux` : purchaseType === 'account' && accountUsername ? `${accountUsername} Account` : '';
+  const itemName = String(input.itemName || input.description || generatedName).trim();
   const rap = Math.round(Number(input.rap));
-  const purchasePrice = Math.round(Number(input.purchasePrice));
+  const enteredPurchasePrice = Math.round(Number(input.purchasePrice));
   const rate = Number(input.rate);
+  const purchasePrice = paymentMethod === 'robux' ? robuxCost * rate : enteredPurchasePrice;
   const purchasedAt = new Date(input.purchasedAt || now);
   if (!itemName) throw new Error('Description is required');
-  if (purchaseType === 'subscription' && username === 'Unassigned') throw new Error('Account is required for a subscription purchase');
+  if (['subscription', 'robux'].includes(purchaseType) && username === 'Unassigned') throw new Error('Account is required for this purchase type');
+  if (purchaseType === 'robux' && (!Number.isFinite(robuxAmount) || robuxAmount <= 0)) throw new Error('Robux amount must be greater than zero');
+  if (purchaseType === 'account' && !accountUsername) throw new Error('New account username is required');
+  if (paymentMethod === 'robux' && username === 'Unassigned') throw new Error('Account is required when buying a Limited with Robux');
+  if (paymentMethod === 'robux' && (!Number.isFinite(robuxCost) || robuxCost <= 0)) throw new Error('Robux cost must be greater than zero');
   if (purchaseType === 'limited' && (!Number.isFinite(rap) || rap <= 0)) throw new Error('RAP must be greater than zero for a limited purchase');
   if (!Number.isFinite(purchasePrice) || purchasePrice <= 0) throw new Error('Purchase price must be greater than zero');
   if (![130, 135, 140].includes(rate)) throw new Error('Rate must be 130, 135, or 140');
@@ -118,7 +128,7 @@ export function createLimitedPurchase(input, now = new Date()) {
   const estimatedRevenue = purchaseType === 'limited' ? estimatedRobuxSell * rate : null;
   return {
     id:`purchase-${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
-    purchaseType, username, itemName, rap:purchaseType === 'limited' ? rap : null, purchasePrice, rate,
+    purchaseType, username, itemName, accountUsername:purchaseType === 'account' ? accountUsername : null, robuxAmount:purchaseType === 'robux' ? robuxAmount : null, paymentMethod, robuxCost:paymentMethod === 'robux' ? robuxCost : null, rap:purchaseType === 'limited' ? rap : null, purchasePrice, rate,
     purchasedAt:purchasedAt.toISOString(),
     robuxSell70:estimatedRobuxSell,
     estimatedRevenue,
@@ -126,6 +136,40 @@ export function createLimitedPurchase(input, now = new Date()) {
     profitEstimate:purchaseType === 'limited' ? estimatedRevenue - purchasePrice : null,
     createdAt:now.toISOString()
   };
+}
+
+export function applyPurchaseToAccounts(accounts, purchase, publicAccount = null) {
+  if (purchase.purchaseType === 'account') {
+    if (!publicAccount?.robloxUserId) throw new Error('Purchased Roblox account could not be verified');
+    if (accounts.some(account => account.robloxUserId === publicAccount.robloxUserId || account.username.toLocaleLowerCase() === publicAccount.username.toLocaleLowerCase())) throw new Error('That Roblox account already exists in Account Manager');
+    const updatedAccount = {
+      id:`roblox-${publicAccount.robloxUserId}`, robloxUserId:publicAccount.robloxUserId,
+      username:publicAccount.username, displayName:publicAccount.displayName,
+      avatarUrl:publicAccount.avatarUrl, profileUrl:publicAccount.profileUrl,
+      limitedItems:publicAccount.limitedItems.join(', '), limitedRapTotal:Math.max(0, Math.round(Number(publicAccount.limitedRapTotal) || 0)),
+      robux:0, robuxPending:0, sendLimit:0, sendLimitUsed:0, plusStatus:'inactive'
+    };
+    return { accounts:[...accounts, updatedAccount], updatedAccount };
+  }
+  const limitedPaidWithRobux = purchase.purchaseType === 'limited' && purchase.paymentMethod === 'robux';
+  if (!['subscription', 'robux'].includes(purchase.purchaseType) && !limitedPaidWithRobux) return { accounts, updatedAccount:null };
+  const accountIndex = accounts.findIndex(account => account.username.toLocaleLowerCase() === purchase.username.toLocaleLowerCase());
+  if (accountIndex < 0) throw new Error('Purchase account was not found in Account Manager');
+  let updatedAccount = { ...accounts[accountIndex] };
+  if (purchase.purchaseType === 'subscription') {
+    updatedAccount = {
+      ...updatedAccount,
+      plusStatus:'active',
+      plusPurchasedAt:purchase.purchasedAt,
+      plusExpiresAt:new Date(new Date(purchase.purchasedAt).getTime() + 30 * 86400000).toISOString()
+    };
+  } else if (purchase.purchaseType === 'robux') updatedAccount.robux = Math.max(0, Math.round(Number(updatedAccount.robux) || 0)) + purchase.robuxAmount;
+  else {
+    const availableRobux = Math.max(0, Math.round(Number(updatedAccount.robux) || 0));
+    if (purchase.robuxCost > availableRobux) throw new Error('Account does not have enough Robux for this Limited purchase');
+    updatedAccount.robux = availableRobux - purchase.robuxCost;
+  }
+  return { accounts:accounts.map((account, index) => index === accountIndex ? updatedAccount : account), updatedAccount };
 }
 
 async function applySellerMapping(items) {
@@ -443,14 +487,18 @@ export const server = createServer(async (req, res) => {
     try {
       const purchase = createLimitedPurchase(await requestJson(req));
       const purchases = await readLimitedPurchases();
+      let publicAccount = null;
+      if (purchase.purchaseType === 'account') {
+        publicAccount = await fetchPublicRobloxAccount(purchase.accountUsername, fetch);
+        if (!publicAccount) throw new Error('Purchased Roblox username was not found');
+      }
       await writeLimitedPurchases([purchase, ...purchases]);
-      if (purchase.purchaseType === 'subscription') {
+      if (['subscription', 'robux', 'account'].includes(purchase.purchaseType) || purchase.paymentMethod === 'robux') {
         const accounts = await readAccounts();
-        const accountIndex = accounts.findIndex(account => account.username.toLocaleLowerCase() === purchase.username.toLocaleLowerCase());
-        if (accountIndex < 0) { await writeLimitedPurchases(purchases); throw new Error('Roblox Plus account was not found in Account Manager'); }
-        const expiresAt = new Date(new Date(purchase.purchasedAt).getTime() + 30 * 86400000).toISOString();
-        accounts[accountIndex] = { ...accounts[accountIndex], plusStatus:'active', plusPurchasedAt:purchase.purchasedAt, plusExpiresAt:expiresAt };
-        try { await writeAccounts(accounts); }
+        let accountUpdate;
+        try { accountUpdate = applyPurchaseToAccounts(accounts, purchase, publicAccount); }
+        catch (error) { await writeLimitedPurchases(purchases); throw error; }
+        try { await writeAccounts(accountUpdate.accounts); }
         catch (error) { await writeLimitedPurchases(purchases); throw error; }
       }
       return json(res, 201, { purchase });

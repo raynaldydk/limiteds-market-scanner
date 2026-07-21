@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyPlusExpirations, applyRobuxSale, calculateAverageDailySales, calculateRobuxSell, clearCache, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
+import { applyPlusExpirations, applyPurchaseToAccounts, applyRobuxSale, calculateAverageDailySales, calculateRobuxSell, clearCache, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
 
 test('scans all pages and calculates metrics', async () => {
   clearCache(); let calls = 0;
@@ -147,4 +147,31 @@ test('expires Roblox Plus after 30 days', () => {
   const result = applyPlusExpirations(accounts, new Date('2026-08-20T12:00:00.000Z'));
   assert.equal(result.accounts[0].plusStatus, 'inactive');
   assert.equal(result.changed, true);
+});
+
+test('adds a Robux purchase to its Account Manager balance', () => {
+  const purchase = createLimitedPurchase({ purchaseType:'robux', username:'Buyer', robuxAmount:1000, purchasePrice:135000, rate:135, purchasedAt:'2026-07-21T12:00:00Z' });
+  assert.equal(purchase.itemName, '1,000 Robux');
+  assert.equal(purchase.robuxAmount, 1000);
+  const result = applyPurchaseToAccounts([{username:'Buyer',robux:250}], purchase);
+  assert.equal(result.updatedAccount.robux, 1250);
+});
+
+test('adds a purchased Roblox account to Account Manager', () => {
+  const purchase = createLimitedPurchase({ purchaseType:'account', accountUsername:'NewOwner', purchasePrice:500000, rate:130, purchasedAt:'2026-07-21T12:00:00Z' });
+  const publicAccount = {robloxUserId:'999',username:'NewOwner',displayName:'New Owner',avatarUrl:'avatar.png',profileUrl:'profile',limitedItems:['Hat'],limitedRapTotal:1234};
+  const result = applyPurchaseToAccounts([], purchase, publicAccount);
+  assert.equal(purchase.itemName, 'NewOwner Account');
+  assert.equal(result.updatedAccount.id, 'roblox-999');
+  assert.equal(result.updatedAccount.limitedRapTotal, 1234);
+  assert.equal(result.updatedAccount.robux, 0);
+});
+
+test('deducts a Robux-paid Limited purchase from its account', () => {
+  const purchase = createLimitedPurchase({ purchaseType:'limited', paymentMethod:'robux', username:'Buyer', itemName:'Test Hat', rap:2000, robuxCost:1200, rate:135, purchasedAt:'2026-07-21T12:00:00Z' });
+  assert.equal(purchase.purchasePrice, 162000);
+  assert.equal(purchase.robuxCost, 1200);
+  const result = applyPurchaseToAccounts([{username:'Buyer',robux:1500}], purchase);
+  assert.equal(result.updatedAccount.robux, 300);
+  assert.throws(() => applyPurchaseToAccounts([{username:'Buyer',robux:1000}], purchase), /enough Robux/);
 });
