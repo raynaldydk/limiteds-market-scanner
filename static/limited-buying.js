@@ -2,6 +2,7 @@ const element = id => document.getElementById(id);
 const number = value => new Intl.NumberFormat('en-US').format(value);
 const idr = value => new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', maximumFractionDigits:0 }).format(value);
 let purchases = [];
+const businessCost = item => Number.isFinite(Number(item.businessCostIdr)) ? Number(item.businessCostIdr) : Number(item.purchasePrice || 0);
 
 async function loadData() {
   try {
@@ -22,14 +23,14 @@ function renderPurchases() {
   element('purchaseCount').textContent = number(purchases.length);
   element('totalRap').textContent = number(purchases.reduce((sum, item) => sum + Number(item.rap || 0), 0));
   element('totalEstimatedRobux').textContent = number(purchases.reduce((sum, item) => sum + getRobuxSell70(item), 0));
-  element('totalCost').textContent = idr(purchases.reduce((sum, item) => sum + Number(item.purchasePrice || 0), 0));
+  element('totalCost').textContent = idr(purchases.reduce((sum, item) => sum + businessCost(item), 0));
   const revenue = purchases.reduce((sum, item) => sum + getRevenue(item), 0);
   const profit = purchases.reduce((sum, item) => sum + getProfit(item), 0);
   element('totalRevenue').textContent = idr(revenue);
   element('totalProfit').textContent = idr(profit);
   element('totalProfit').classList.toggle('negative', profit < 0);
   element('purchaseEmpty').hidden = purchases.length > 0;
-  element('purchaseGrid').innerHTML = purchases.map(item => { const limited=isLimited(item), hasProfit=limited||isExpenseOnly(item), sell70=getRobuxSell70(item), revenue=getRevenue(item), profit=getProfit(item), cost=item.paymentMethod === 'robux' ? `${number(item.robuxCost)} Robux` : idr(item.purchasePrice); return `<tr><td><span class="purchase-type">${escapeHtml(typeLabel(item))}</span></td><td><strong>${escapeHtml(item.username || 'Unassigned')}</strong></td><td>${escapeHtml(item.itemName)}</td><td class="num">${limited ? number(item.rap) : '—'}</td><td class="num">${limited ? number(sell70) : '—'}</td><td class="num price" title="${item.paymentMethod === 'robux' ? escapeHtml(`IDR cost basis: ${idr(item.purchasePrice)}`) : ''}">${cost}</td><td class="num">${limited ? idr(revenue) : '—'}</td><td class="date">${formatDate(item.purchasedAt)}</td><td class="num value ${hasProfit && profit < 0 ? 'negative' : ''}">${hasProfit ? idr(profit) : '—'}</td></tr>`; }).join('');
+  element('purchaseGrid').innerHTML = purchases.map(item => { const limited=isLimited(item), hasProfit=limited||isExpenseOnly(item), sell70=getRobuxSell70(item), revenue=getRevenue(item), profit=getProfit(item), allocated=item.businessCostIdr!=null, cost=item.paymentMethod === 'robux' ? `${number(item.robuxCost)} Robux` : idr(businessCost(item)), costTitle=allocated ? `Original cost: ${idr(item.purchasePrice)} · Personal allocation: ${idr(item.personalCostAllocationIdr)}` : item.paymentMethod === 'robux' ? `IDR cost basis: ${idr(item.purchasePrice)}` : ''; return `<tr><td><span class="purchase-type">${escapeHtml(typeLabel(item))}</span></td><td><strong>${escapeHtml(item.username || 'Unassigned')}</strong></td><td>${escapeHtml(item.itemName)}</td><td class="num">${limited ? number(item.rap) : '—'}</td><td class="num">${limited ? number(sell70) : '—'}</td><td class="num price" title="${escapeHtml(costTitle)}">${cost}</td><td class="num">${limited ? idr(revenue) : '—'}</td><td class="date">${formatDate(item.purchasedAt)}</td><td class="num value ${hasProfit && profit < 0 ? 'negative' : ''}">${hasProfit ? idr(profit) : '—'}</td></tr>`; }).join('');
 }
 
 function isLimited(item) { return (item.purchaseType || 'limited') === 'limited'; }
