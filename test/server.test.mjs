@@ -173,12 +173,15 @@ test('adds a purchased Roblox account to Account Manager', () => {
   assert.equal(result.updatedAccount.limitedRapTotal, 1234);
   assert.equal(result.updatedAccount.robux, 0);
   assert.equal(result.updatedAccount.underage, false);
+  assert.equal(result.updatedAccount.parent, false);
 });
 
 test('values accounts as assets from their send limit tier', () => {
   assert.equal(calculateAccountAssetValue(10000), 25000);
   assert.equal(calculateAccountAssetValue(45000), 25000);
   assert.equal(calculateAccountAssetValue(1000), 0);
+  assert.equal(calculateAccountAssetValue(1000, true), 15000);
+  assert.equal(calculateAccountAssetValue(10000, true), 15000);
 });
 
 test('marks sssssssel6 as underage when purchasing the account', () => {
