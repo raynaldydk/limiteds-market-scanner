@@ -39,8 +39,34 @@ document.getElementById('calculator').addEventListener('input', event => {
   calculate();
 });
 document.getElementById('calculator').addEventListener('change', calculate);
+document.getElementById('calculatorScanRap').addEventListener('click', async () => {
+  const name = document.getElementById('calculatorItemName').value.trim();
+  const button = document.getElementById('calculatorScanRap');
+  const status = document.getElementById('calculatorRapStatus');
+  status.hidden = false;
+  if (!name) { status.textContent = 'Enter an exact item name first.'; status.className = 'rap-scan-status error'; return; }
+  button.disabled = true; button.textContent = 'Scanning...'; status.textContent = 'Looking up current Roblox RAP...'; status.className = 'rap-scan-status';
+  try {
+    const response = await fetch(`/api/roblox/rap?name=${encodeURIComponent(name)}`);
+    const data = await response.json();
+    if (!response.ok) throw new Error(data.error || 'RAP could not be found');
+    document.getElementById('calculatorRap').value = data.rap;
+    const preview = document.getElementById('calculatorItemPreview');
+    if (data.thumbnailUrl) {
+      document.getElementById('calculatorItemImage').src = data.thumbnailUrl;
+      document.getElementById('calculatorItemImage').alt = `${name} preview`;
+      document.getElementById('calculatorItemCaption').textContent = name;
+      preview.hidden = false;
+    } else preview.hidden = true;
+    calculate(); status.textContent = `Current RAP found: ${number(data.rap)}.`; status.className = 'rap-scan-status success';
+  } catch (error) { status.textContent = error.message; status.className = 'rap-scan-status error'; }
+  finally { button.disabled = false; button.textContent = 'Scan RAP'; }
+});
 document.getElementById('calculator').addEventListener('reset', () => setTimeout(() => {
   formatIdrInput(document.getElementById('listedPrice'));
+  document.getElementById('calculatorRapStatus').hidden = true;
+  document.getElementById('calculatorItemPreview').hidden = true;
+  document.getElementById('calculatorItemImage').removeAttribute('src');
   calculate();
 }));
 formatIdrInput(document.getElementById('listedPrice'));

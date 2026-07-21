@@ -60,7 +60,7 @@ IDR / 1K RAP is highlighted red when the row's calculated profit is below zero a
 
 ## Calculator
 
-The Calculator works independently of the live scan. Enter a Rupiah price and Roblox RAP, select a Robux Sell Rate, and toggle the purchase source:
+The Calculator works independently of the live market scan. Enter a Rupiah price and Roblox RAP, select a Robux Sell Rate, and toggle the purchase source. The optional Item Name field can scan current Roblox RAP by exact name, including the face/dynamic-head fallback, then show the official item thumbnail above the KPI cards and recalculate immediately:
 
 - **LimitedsMarket:** adds 5.3% tax to the listed price
 - **Direct Seller:** uses the listed price without tax

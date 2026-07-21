@@ -34,6 +34,8 @@
         </fieldset>
         <label>Listed Price IDR <input id="listedPrice" type="text" inputmode="numeric" value="Rp 1.000.000" autocomplete="off"></label>
         <small id="taxHelp">Price before the 5.3% LimitedsMarket tax.</small>
+        <label>Item Name <span class="calculator-scan-row"><input id="calculatorItemName" type="text" autocomplete="off" placeholder="Exact limited item name"><button id="calculatorScanRap" class="secondary" type="button">Scan RAP</button></span></label>
+        <small id="calculatorRapStatus" class="rap-scan-status" hidden></small>
         <label>Roblox RAP <input id="calculatorRap" type="number" min="0" step="1" value="10000"></label>
         <label>Robux Sell Rate
           <select id="calculatorRate"><option value="130" selected>130</option><option value="135">135</option><option value="140">140</option></select>
@@ -43,12 +45,15 @@
 
       <section class="calculator-results" aria-live="polite">
         <h2>Analysis</h2>
+        <figure id="calculatorItemPreview" class="calculator-item-preview" hidden><img id="calculatorItemImage" alt=""><figcaption id="calculatorItemCaption"></figcaption></figure>
+        <div class="calculator-kpis">
         <div><span>Price IDR</span><b id="resultPrice">—</b><small id="priceHelp">Listed price + 5.3% tax</small></div>
         <div><span>IDR / 1K RAP</span><b id="resultValue">—</b></div>
         <div><span>Robux Sell</span><b id="resultRobux">—</b><small>70% of Roblox RAP</small></div>
         <div><span>Robux Sell IDR</span><b id="resultSellIdr">—</b></div>
         <div><span>Profit</span><b id="resultProfit">—</b></div>
         <div><span>Profit / Cost</span><b id="resultRatio">—</b></div>
+        </div>
       </section>
     </section>
   </main>
