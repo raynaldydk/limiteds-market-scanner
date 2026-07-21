@@ -141,6 +141,11 @@ test('stores a subscription with only account, price, and date', () => {
   assert.equal(purchase.profitEstimate, -75000);
 });
 
+test('treats an other purchase as a negative profit expense', () => {
+  const purchase = createLimitedPurchase({ purchaseType:'other', itemName:'Operational expense', purchasePrice:36000, rate:130, purchasedAt:'2026-07-21T12:00:00Z' });
+  assert.equal(purchase.profitEstimate, -36000);
+});
+
 test('expires Roblox Plus after 30 days', () => {
   const accounts = [{username:'Subscriber',plusStatus:'active',plusExpiresAt:'2026-08-20T12:00:00.000Z'}];
   assert.equal(applyPlusExpirations(accounts, new Date('2026-08-20T11:59:59.000Z')).accounts[0].plusStatus, 'active');

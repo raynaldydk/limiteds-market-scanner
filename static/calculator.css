@@ -167,6 +167,11 @@
 .calculator-item-preview[hidden] { display: none; }
 .calculator-item-preview img { width: 92px; height: 92px; object-fit: contain; border: 1px solid var(--line); background: transparent; }
 .calculator-item-preview figcaption { color: var(--ink); font-family: Georgia, serif; font-size: 20px; overflow-wrap: anywhere; }
+.calculator-item-preview figcaption > span { display: block; }
+.calculator-item-links { display: flex !important; gap: 9px; margin-top: 10px; }
+.calculator-item-links a { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; border: 1px solid var(--line); border-radius: 4px; background: white; }
+.calculator-item-links a:hover { border-color: var(--accent); }
+.calculator-item-links img { width: 20px; height: 20px; border: 0; object-fit: contain; }
 
 .calculator-kpis {
   display: grid;
