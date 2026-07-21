@@ -75,6 +75,27 @@ button {
   color: #a33131;
 }
 
+.column-sort {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: inherit;
+  gap: 3px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  font: inherit;
+  font-weight: 700;
+  letter-spacing: inherit;
+  text-align: inherit;
+  text-transform: inherit;
+}
+.column-sort span { color: #98a2b3; font-size: 9px; }
+.column-sort.active { color: var(--accent); }
+.column-sort.active span { color: var(--accent); }
+th.num .column-sort { justify-content: flex-end; }
+
 html[data-theme="dark"] .value.negative-value {
   color: #ff7b7b;
 }

@@ -1,6 +1,7 @@
 let allItems = [];
 let visibleItems = [];
 let rapPollTimer = null;
+let columnSort = null;
 const $ = id => document.getElementById(id);
 const number = n => new Intl.NumberFormat('en-US').format(n);
 
@@ -58,8 +59,10 @@ function render() {
     value:(a,b)=>(a.idr_per_1k_rap??Infinity)-(b.idr_per_1k_rap??Infinity), priceAsc:(a,b)=>a.price_idr-b.price_idr,
     priceDesc:(a,b)=>b.price_idr-a.price_idr, rapDesc:(a,b)=>b.rap-a.rap, newest:(a,b)=>new Date(b.created_at)-new Date(a.created_at)
   };
-  visibleItems.sort(sorts[$('sort').value]);
   const sellRate = Number($('sellRate').value);
+  if (columnSort) visibleItems.sort(columnComparator(columnSort.key, columnSort.direction, sellRate));
+  else visibleItems.sort(sorts[$('sort').value]);
+  updateSortHeaders();
   $('resultCount').textContent = `Showing ${visibleItems.length} of ${allItems.length} listings`;
   $('empty').hidden = visibleItems.length > 0;
   $('grid').innerHTML = visibleItems.map((x,i) => `
@@ -80,6 +83,35 @@ function render() {
     </tr>`).join('');
 }
 
+function columnComparator(key, direction, sellRate) {
+  const sourceRank = item => allItems.indexOf(item);
+  const accessors = {
+    rank:sourceRank, item:item=>item.item_name, seller:item=>item.seller_internal_id,
+    dailySales:item=>item.avg_daily_sales_30d, rap:item=>item.rap, robuxSell:item=>item.robux_sell,
+    price:item=>item.after_tax_idr, value:item=>item.idr_per_1k_rap,
+    sellIdr:item=>item.robux_sell == null ? null : item.robux_sell*sellRate,
+    profit:item=>item.robux_sell == null ? null : item.robux_sell*sellRate-item.after_tax_idr,
+    profitRatio:item=>item.robux_sell == null || !item.after_tax_idr ? null : (item.robux_sell*sellRate-item.after_tax_idr)/item.after_tax_idr,
+    listed:item=>Date.parse(item.created_at), listing:item=>item.listing_url
+  };
+  const accessor = accessors[key];
+  return (left,right) => {
+    const a=accessor(left), b=accessor(right), aMissing=a==null || Number.isNaN(a), bMissing=b==null || Number.isNaN(b);
+    if (aMissing || bMissing) return aMissing === bMissing ? sourceRank(left)-sourceRank(right) : aMissing ? 1 : -1;
+    const comparison = typeof a === 'string' ? a.localeCompare(b,undefined,{numeric:true,sensitivity:'base'}) : a-b;
+    return comparison * (direction === 'asc' ? 1 : -1) || sourceRank(left)-sourceRank(right);
+  };
+}
+
+function updateSortHeaders() {
+  document.querySelectorAll('.column-sort').forEach(button => {
+    const active = columnSort?.key === button.dataset.sort;
+    button.classList.toggle('active', active);
+    button.querySelector('span').textContent = active ? (columnSort.direction === 'asc' ? '▲' : '▼') : '↕';
+    button.closest('th').setAttribute('aria-sort', active ? (columnSort.direction === 'asc' ? 'ascending' : 'descending') : 'none');
+  });
+}
+
 function exportCsv() {
   const cols = ['item_name','seller_internal_id','seller_id','category','idr_rate','price_idr','after_tax_idr','market_rap','rap','robux_sell','robux_sell_rate','robux_sell_idr','profit_idr','profit_cost_ratio','sales_30d','avg_daily_sales_30d','rap_status','rap_checked_at','roblox_asset_id','roblox_collectible_item_id','idr_per_1k_rap','created_at','listing_url','roblox_url','rolimons_url'];
   const sellRate = Number($('sellRate').value);
@@ -96,5 +128,13 @@ function formatDate(value) {
   return `${pad(date.getDate())}/${pad(date.getMonth()+1)}/${date.getFullYear()}<br>${pad(date.getHours())}.${pad(date.getMinutes())}.${pad(date.getSeconds())}`;
 }
 function escapeHtml(v) { const d=document.createElement('div'); d.textContent=String(v??''); return d.innerHTML; }
-['search','category','maxPrice','minRap','minDailySales','sort','sellRate'].forEach(id => $(id).addEventListener(id==='search'?'input':'change', render));
+['search','category','maxPrice','minRap','minDailySales','sellRate'].forEach(id => $(id).addEventListener(id==='search'?'input':'change', render));
+$('sort').addEventListener('change', () => { columnSort=null; render(); });
+document.querySelector('thead').addEventListener('click', event => {
+  const button=event.target.closest('.column-sort'); if(!button)return;
+  columnSort={key:button.dataset.sort,direction:columnSort?.key===button.dataset.sort&&columnSort.direction==='asc'?'desc':'asc'};
+  const matching={value:{asc:'value'},price:{asc:'priceAsc',desc:'priceDesc'},rap:{desc:'rapDesc'},listed:{desc:'newest'}}[columnSort.key]?.[columnSort.direction];
+  if(matching)$('sort').value=matching;
+  render();
+});
 $('scan').addEventListener('click', () => scan(true)); $('export').addEventListener('click', exportCsv); scan();
