@@ -19,7 +19,7 @@ Open:
 - Calculator: <http://127.0.0.1:8000/calculator.html>
 - Account Manager: <http://127.0.0.1:8000/accounts.html>
 - Sell Robux: <http://127.0.0.1:8000/sell-robux.html>
-- Limited Buying: <http://127.0.0.1:8000/limited-buying.html>
+- Buying: <http://127.0.0.1:8000/limited-buying.html>
 
 The server binds to `127.0.0.1` by default.
 
@@ -100,9 +100,9 @@ Account Manager automatically refreshes each saved account's public Roblox avata
 
 The Sell Robux page records a source username, Robux sold, a rate of 130/135/140, calculated IDR price, and timestamp. Inserting a record subtracts `Robux Sold` from the selected account's Robux balance and adds it to Robux Send Limit Used. A sale is rejected when the account lacks Robux or remaining send limit. Records persist in the Git-ignored `data/robux-sales.json` file. The username filter and 1/7/30-day period toggle update both the KPI cards and sales history while retaining the desktop one-viewport layout.
 
-## Limited Buying
+## Buying
 
-The Limited Buying page assigns each purchase to a username selected from Account Manager and records item name, RAP, after-tax purchase price, purchase date, and a Robux sell rate. `Scan RAP` looks up current Roblox RAP from the exact item name and supports the face/dynamic-head fallback. KPI cards include Total RAP and Estimated Robux, calculated as the sum of each item's rounded 70% RAP. The page calculates `70% RAP = ROUND(0.7 x RAP)`, `Est. Revenue = 70% RAP x Rate`, `Minimum Robux Sell = CEILING(Purchase Price / Rate)`, and `Profit Est. = Est. Revenue - Purchase Price`. Purchases persist locally in the Git-ignored `data/limited-purchases.json` file.
+The Buying page tracks Limiteds, Roblox Plus, Robux, accounts, and other purchases. Roblox Plus entries require only an Account Manager account, IDR price, and date; their description is generated automatically. Saving one activates Plus for the selected account, stores `plusPurchasedAt` and a 30-day `plusExpiresAt`, and Account Manager changes the status back to inactive after expiration. Other records store an optional owner, description, price, and date. Limited purchases additionally support exact-name RAP scanning, Total RAP and Estimated Robux KPIs, and the formulas `70% RAP = ROUND(0.7 x RAP)`, `Est. Revenue = 70% RAP x Rate`, `Minimum Robux Sell = CEILING(Purchase Price / Rate)`, and `Profit Est. = Est. Revenue - Purchase Price`. Existing Limited records remain compatible. Purchases persist locally in the Git-ignored `data/limited-purchases.json` file.
 
 ## Configuration
 

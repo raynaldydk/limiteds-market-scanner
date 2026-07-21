@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyRobuxSale, calculateAverageDailySales, calculateRobuxSell, clearCache, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
+import { applyPlusExpirations, applyRobuxSale, calculateAverageDailySales, calculateRobuxSell, clearCache, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
 
 test('scans all pages and calculates metrics', async () => {
   clearCache(); let calls = 0;
@@ -130,4 +130,21 @@ test('looks up purchase RAP by exact item name', async () => {
   let call = 0;
   const result = await fetchCurrentRapByName('Test Hat', async () => ({ok:true,json:async()=>replies[call++]}));
   assert.equal(result.rap, 4321);
+});
+
+test('stores a subscription with only account, price, and date', () => {
+  const purchase = createLimitedPurchase({ purchaseType:'subscription', username:'Subscriber', purchasePrice:75000, rate:130, purchasedAt:'2026-07-21T12:00:00Z' }, new Date('2026-07-21T13:00:00Z'));
+  assert.equal(purchase.purchaseType, 'subscription');
+  assert.equal(purchase.username, 'Subscriber');
+  assert.equal(purchase.itemName, 'Roblox Plus');
+  assert.equal(purchase.rap, null);
+  assert.equal(purchase.profitEstimate, null);
+});
+
+test('expires Roblox Plus after 30 days', () => {
+  const accounts = [{username:'Subscriber',plusStatus:'active',plusExpiresAt:'2026-08-20T12:00:00.000Z'}];
+  assert.equal(applyPlusExpirations(accounts, new Date('2026-08-20T11:59:59.000Z')).accounts[0].plusStatus, 'active');
+  const result = applyPlusExpirations(accounts, new Date('2026-08-20T12:00:00.000Z'));
+  assert.equal(result.accounts[0].plusStatus, 'inactive');
+  assert.equal(result.changed, true);
 });
