@@ -1,9 +1,9 @@
 .sell-page { overflow: hidden; }
-.sell-page main { display: flex; flex-direction: column; width: calc(100% - 24px); height: calc(100vh - 24px); min-height: 0; margin: 12px auto; overflow: hidden; }
+.sell-page main { display: flex; flex-direction: column; width: auto; height: calc(100vh - 56px); min-height: 0; margin: 28px auto; overflow: hidden; }
 .sell-page footer { display: none; }
-.sell-page header { flex: 0 0 auto; padding: 20px 36px 16px; }
-.sell-page h1 { font-size: 30px; }
-.sell-page .eyebrow { margin-bottom: 5px; }
+.sell-page header { flex: 0 0 auto; padding: 32px 36px 24px; }
+.sell-page h1 { font-size: 34px; }
+.sell-page .eyebrow { margin-bottom: 8px; }
 .sell-page .page-nav { flex: 0 0 auto; }
 .sale-layout { display: grid; flex: 1 1 auto; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); gap: 24px; min-height: 0; padding: 20px 36px 24px; overflow: hidden; border-bottom: 1px solid var(--line); }
 .sale-form { padding: 22px; border: 1px solid var(--line); background: #fafafa; }

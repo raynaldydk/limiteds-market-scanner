@@ -73,7 +73,7 @@ The Calculator works independently of the live market scan. Enter a Rupiah price
 - **Direct Seller:** uses the listed price without tax
 - Price input is formatted as Indonesian Rupiah, for example `Rp 1.000.000`
 - All results update immediately
-- The desktop layout fits within one viewport; mobile uses a stacked scrollable layout
+- The desktop layout fits within one viewport while sharing the same outer page position and header shell as scrollable pages; mobile uses a stacked scrollable layout
 
 Calculator formulas:
 
@@ -105,7 +105,7 @@ Account Manager automatically refreshes each saved account's public Roblox avata
 
 ## Sell Robux
 
-The Sell Robux page records a source username, Robux sold, a rate of 130/135/140, calculated IDR price, and timestamp. Inserting a record subtracts `Robux Sold` from the selected account's Robux balance and adds it to Robux Send Limit Used. A sale is rejected when the account lacks Robux or remaining send limit. Records persist in the Git-ignored `data/robux-sales.json` file. The username filter and 1/7/30-day/All Time period toggle update both the KPI cards and sales history while retaining the desktop one-viewport layout.
+The Sell Robux page records a source username, Robux sold, a rate of 130/135/140, calculated IDR price, and timestamp. Inserting a record subtracts `Robux Sold` from the selected account's Robux balance and adds it to Robux Send Limit Used. A sale is rejected when the account lacks Robux or remaining send limit. Records persist in the Git-ignored `data/robux-sales.json` file. The username filter and 1/7/30-day/All Time period toggle update both the KPI cards and sales history while retaining the desktop one-viewport layout and shared page shell.
 
 ## Buying
 
