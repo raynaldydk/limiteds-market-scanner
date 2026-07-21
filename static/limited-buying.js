@@ -33,7 +33,7 @@ function renderPurchases() {
 }
 
 function isLimited(item) { return (item.purchaseType || 'limited') === 'limited'; }
-function isExpenseOnly(item) { return ['subscription','robux','account'].includes(item.purchaseType); }
+function isExpenseOnly(item) { return ['subscription','robux','account','other'].includes(item.purchaseType); }
 function typeLabel(item) { const value=item.purchaseType || 'limited'; return value === 'subscription' ? 'Roblox Plus' : value.charAt(0).toUpperCase()+value.slice(1); }
 function getRobuxSell70(item) { if (!isLimited(item)) return 0; return Number.isFinite(Number(item.robuxSell70)) ? Number(item.robuxSell70) : Math.round(Number(item.rap || 0) * 0.7); }
 function getRevenue(item) { if (!isLimited(item)) return 0; return Number.isFinite(Number(item.estimatedRevenue)) ? Number(item.estimatedRevenue) : getRobuxSell70(item) * Number(item.rate || 0); }

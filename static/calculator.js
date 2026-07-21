@@ -56,6 +56,12 @@ document.getElementById('calculatorScanRap').addEventListener('click', async () 
       document.getElementById('calculatorItemImage').src = data.thumbnailUrl;
       document.getElementById('calculatorItemImage').alt = `${name} preview`;
       document.getElementById('calculatorItemCaption').textContent = name;
+      const itemType = data.bundleId ? 'bundle' : 'item';
+      const itemId = data.bundleId || data.assetId;
+      document.getElementById('calculatorRobloxLink').href = data.bundleId
+        ? `https://www.roblox.com/bundles/${itemId}`
+        : `https://www.roblox.com/catalog/${itemId}`;
+      document.getElementById('calculatorRolimonsLink').href = `https://www.rolimons.com/${itemType}/${itemId}`;
       preview.hidden = false;
     } else preview.hidden = true;
     calculate(); status.textContent = `Current RAP found: ${number(data.rap)}.`; status.className = 'rap-scan-status success';
@@ -67,6 +73,8 @@ document.getElementById('calculator').addEventListener('reset', () => setTimeout
   document.getElementById('calculatorRapStatus').hidden = true;
   document.getElementById('calculatorItemPreview').hidden = true;
   document.getElementById('calculatorItemImage').removeAttribute('src');
+  document.getElementById('calculatorRobloxLink').removeAttribute('href');
+  document.getElementById('calculatorRolimonsLink').removeAttribute('href');
   calculate();
 }));
 formatIdrInput(document.getElementById('listedPrice'));
