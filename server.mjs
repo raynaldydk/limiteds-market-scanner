@@ -99,7 +99,8 @@ export function applyPlusExpirations(accounts, now = new Date()) {
   return { accounts:updated, changed };
 }
 
-export function calculateAccountAssetValue(sendLimit) {
+export function calculateAccountAssetValue(sendLimit, parent = false) {
+  if (parent === true) return 15000;
   return Math.max(0, Math.round(Number(sendLimit) || 0)) >= 10000 ? 25000 : 0;
 }
 
@@ -153,7 +154,7 @@ export function applyPurchaseToAccounts(accounts, purchase, publicAccount = null
       avatarUrl:publicAccount.avatarUrl, profileUrl:publicAccount.profileUrl,
       limitedItems:publicAccount.limitedItems.join(', '), limitedRapTotal:Math.max(0, Math.round(Number(publicAccount.limitedRapTotal) || 0)),
       robux:0, robuxPending:0, sendLimit:0, sendLimitUsed:0, plusStatus:'inactive',
-      underage:publicAccount.username.toLocaleLowerCase() === 'sssssssel6'
+      underage:publicAccount.username.toLocaleLowerCase() === 'sssssssel6', parent:false
     };
     return { accounts:[...accounts, updatedAccount], updatedAccount };
   }

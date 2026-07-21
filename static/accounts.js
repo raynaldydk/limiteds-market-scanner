@@ -6,7 +6,7 @@ const formatNumber = value => new Intl.NumberFormat('en-US').format(value);
 const formatIdr = value => new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', maximumFractionDigits:0 }).format(value);
 const formatDateOnly = value => value ? new Intl.DateTimeFormat('en-GB').format(new Date(value)) : '';
 const isUnderage = account => String(account.username || '').toLocaleLowerCase() === 'sssssssel6' || account.underage === true;
-const accountAssetValue = account => integer(account.sendLimit) >= 10000 ? 25000 : 0;
+const accountAssetValue = account => account.parent === true ? 15000 : integer(account.sendLimit) >= 10000 ? 25000 : 0;
 
 let accounts = loadAccounts();
 try { byId('accountSellRate').value = localStorage.getItem(SELL_RATE_KEY) || '130'; } catch {}
@@ -34,7 +34,7 @@ async function loadStoredAccounts() {
     const data = await response.json();
     if (!response.ok) throw new Error(data.error || 'Account file could not be loaded');
     if (data.accounts.length) {
-      accounts = data.accounts.map(account => ({ ...account, underage:isUnderage(account) }));
+      accounts = data.accounts.map(account => ({ ...account, underage:isUnderage(account), parent:account.parent === true }));
       await saveAccounts();
     }
     else if (browserBackup.length) await saveAccounts();
@@ -137,6 +137,7 @@ function render() {
       <td class="num quota">${formatNumber(estimatedAccountRobux)} / ${formatNumber(remainingSendLimit)}</td>
       <td><span class="account-status ${account.plusStatus === 'active' ? 'active' : ''}">${account.plusStatus === 'active' ? 'Active' : 'Inactive'}</span>${account.plusExpiresAt ? `<small class="plus-expiry">Until ${formatDateOnly(account.plusExpiresAt)}</small>` : ''}</td>
       <td><span class="underage-status ${isUnderage(account) ? 'true' : 'false'}">${isUnderage(account) ? 'True' : 'False'}</span></td>
+      <td><span class="parent-status ${account.parent === true ? 'true' : 'false'}">${account.parent === true ? 'True' : 'False'}</span></td>
       <td><div class="row-actions"><button class="edit-account secondary" data-id="${escapeHtml(account.id)}" type="button">Edit</button><button class="delete-account secondary" data-id="${escapeHtml(account.id)}" type="button">Delete</button></div></td>
     </tr>`;
   }).join('');
@@ -155,6 +156,7 @@ function openDialog(account) {
   byId('sendLimitUsed').value = integer(account?.sendLimitUsed);
   byId('plusStatus').value = account?.plusStatus || 'inactive';
   byId('underage').value = isUnderage(account) ? 'true' : 'false';
+  byId('parent').value = account?.parent === true ? 'true' : 'false';
   byId('accountDialog').showModal();
   byId('username').focus();
 }
@@ -167,7 +169,7 @@ byId('accountForm').addEventListener('submit', event => {
     ...existing, id, username:byId('username').value.trim(), avatarUrl:byId('avatarUrl').value.trim(),
     limitedItems:byId('limitedItems').value.trim(), robux:integer(byId('robux').value), robuxPending:integer(byId('robuxPending').value),
     sendLimit:integer(byId('sendLimit').value), sendLimitUsed:integer(byId('sendLimitUsed').value),
-    plusStatus:byId('plusStatus').value, underage:byId('underage').value === 'true'
+    plusStatus:byId('plusStatus').value, underage:byId('underage').value === 'true', parent:byId('parent').value === 'true'
   };
   const index = accounts.findIndex(item => item.id === id);
   if (index >= 0) accounts[index] = account;
@@ -197,7 +199,8 @@ async function syncPublicAccount(username) {
       avatarUrl:data.avatarUrl, profileUrl:data.profileUrl, limitedItems:data.limitedItems.join(', '), limitedRapTotal:integer(data.limitedRapTotal),
       robux:integer(existing.robux), robuxPending:integer(existing.robuxPending), sendLimit:integer(existing.sendLimit),
       sendLimitUsed:integer(existing.sendLimitUsed), plusStatus:existing.plusStatus || 'inactive',
-      underage:data.username.toLocaleLowerCase() === 'sssssssel6' || existing.underage === true
+      underage:data.username.toLocaleLowerCase() === 'sssssssel6' || existing.underage === true,
+      parent:existing.parent === true
     };
     const index = accounts.findIndex(item => item.id === id);
     if (index >= 0) accounts[index] = account; else accounts.push(account);

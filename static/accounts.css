@@ -13,7 +13,7 @@
 html[data-theme="dark"] .rate-card select { border-color: #4a5664; background: #11161d; }
 .accounts-section { padding-bottom: 8px; }
 .accounts-table-wrap { overflow-x: auto; }
-.accounts-table { min-width: 1150px; table-layout: auto; }
+.accounts-table { min-width: 1080px; table-layout: auto; }
 .accounts-table th { width: auto; white-space: nowrap; overflow-wrap: normal; }
 .accounts-table th:first-child,
 .accounts-table td:first-child { min-width: 150px; white-space: nowrap; }
@@ -26,6 +26,9 @@ html[data-theme="dark"] .rate-card select { border-color: #4a5664; background: #
 .underage-status { font-weight: 700; }
 .underage-status.false { color: var(--accent); }
 .underage-status.true { color: #a33131; }
+.parent-status { font-weight: 700; }
+.parent-status.false { color: var(--muted); }
+.parent-status.true { color: var(--accent); }
 .plus-expiry { display:block; margin-top:5px; color:var(--muted); font-size:10px; white-space:nowrap; }
 .account-avatar { display: inline-flex; align-items: center; gap: 7px; }
 .account-avatar > img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }

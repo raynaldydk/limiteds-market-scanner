@@ -4,7 +4,7 @@ const number = value => new Intl.NumberFormat('en-US').format(value);
 const idr = value => new Intl.NumberFormat('id-ID',{style:'currency',currency:'IDR',maximumFractionDigits:0}).format(value);
 const dateTime = value => new Intl.DateTimeFormat('en-GB',{dateStyle:'short',timeStyle:'short'}).format(new Date(value));
 let accounts = [], purchases = [], sales = [];
-const accountAssetValue = account => integer(account.sendLimit) >= 10000 ? 25000 : 0;
+const accountAssetValue = account => account.parent === true ? 15000 : integer(account.sendLimit) >= 10000 ? 25000 : 0;
 
 async function loadDashboard() {
   try {
