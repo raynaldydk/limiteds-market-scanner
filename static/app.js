@@ -79,7 +79,7 @@ function render() {
       <td class="num profit ${x.robux_sell != null && x.robux_sell * sellRate - x.after_tax_idr >= 0 ? 'positive' : 'negative'}">${x.robux_sell == null ? '—' : idr(x.robux_sell * sellRate - x.after_tax_idr)}</td>
       <td class="num profit ${x.robux_sell != null && x.robux_sell * sellRate - x.after_tax_idr >= 0 ? 'positive' : 'negative'}">${x.robux_sell == null || !x.after_tax_idr ? '—' : `${((x.robux_sell * sellRate - x.after_tax_idr) / x.after_tax_idr * 100).toFixed(2)}%`}</td>
       <td class="date">${formatDate(x.created_at)}</td>
-      <td><a class="view" href="${escapeHtml(x.listing_url)}" target="_blank" rel="noopener">Listing ↗</a></td>
+      <td><a class="listing-icon" href="${escapeHtml(x.listing_url)}" target="_blank" rel="noopener" title="Open on LimitedsMarket" aria-label="Open listing on LimitedsMarket"><img src="https://limitedsmarket.com/icon.png" alt=""></a></td>
     </tr>`).join('');
 }
 
@@ -92,7 +92,7 @@ function columnComparator(key, direction, sellRate) {
     sellIdr:item=>item.robux_sell == null ? null : item.robux_sell*sellRate,
     profit:item=>item.robux_sell == null ? null : item.robux_sell*sellRate-item.after_tax_idr,
     profitRatio:item=>item.robux_sell == null || !item.after_tax_idr ? null : (item.robux_sell*sellRate-item.after_tax_idr)/item.after_tax_idr,
-    listed:item=>Date.parse(item.created_at), listing:item=>item.listing_url
+    listed:item=>Date.parse(item.created_at)
   };
   const accessor = accessors[key];
   return (left,right) => {
@@ -107,7 +107,7 @@ function updateSortHeaders() {
   document.querySelectorAll('.column-sort').forEach(button => {
     const active = columnSort?.key === button.dataset.sort;
     button.classList.toggle('active', active);
-    button.querySelector('span').textContent = active ? (columnSort.direction === 'asc' ? '▲' : '▼') : '↕';
+    button.querySelector('span').textContent = active ? (columnSort.direction === 'asc' ? '▲' : '▼') : '';
     button.closest('th').setAttribute('aria-sort', active ? (columnSort.direction === 'asc' ? 'ascending' : 'descending') : 'none');
   });
 }
@@ -128,6 +128,8 @@ function formatDate(value) {
   return `${pad(date.getDate())}/${pad(date.getMonth()+1)}/${date.getFullYear()}<br>${pad(date.getHours())}.${pad(date.getMinutes())}.${pad(date.getSeconds())}`;
 }
 function escapeHtml(v) { const d=document.createElement('div'); d.textContent=String(v??''); return d.innerHTML; }
+const listingHeader = document.querySelector('.column-sort[data-sort="listing"]')?.closest('th');
+if (listingHeader) listingHeader.textContent = 'Link';
 ['search','category','maxPrice','minRap','minDailySales','sellRate'].forEach(id => $(id).addEventListener(id==='search'?'input':'change', render));
 $('sort').addEventListener('change', () => { columnSort=null; render(); });
 document.querySelector('thead').addEventListener('click', event => {

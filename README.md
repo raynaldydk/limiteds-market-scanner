@@ -42,7 +42,8 @@ The Executive Summary combines Account Manager, Buying, and Sell Robux data. It 
 - Sorts by value, price, RAP, or listing age
 - Selectable Robux Sell Rates of 130, 135, and 140 IDR
 - Live Robux sale, profit, and profit-to-cost analysis
-- Ascending/descending sorting from every report table header
+- Ascending/descending sorting from every data header in the report table
+- LimitedsMarket favicon buttons open the original listing
 - CSV export of the filtered report
 - Links migrated Faces to their Roblox and Rolimon's bundle pages; ordinary limiteds use item pages
 - Persistent Light/Dark mode toggle shared by Scan & Analysis and Calculator
