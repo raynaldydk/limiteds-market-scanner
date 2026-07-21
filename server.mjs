@@ -126,6 +126,7 @@ export function createLimitedPurchase(input, now = new Date()) {
   if (Number.isNaN(purchasedAt.getTime())) throw new Error('Purchase date is invalid');
   const estimatedRobuxSell = purchaseType === 'limited' ? Math.round(rap * 0.7) : null;
   const estimatedRevenue = purchaseType === 'limited' ? estimatedRobuxSell * rate : null;
+  const expenseOnly = ['subscription', 'robux', 'account'].includes(purchaseType);
   return {
     id:`purchase-${now.getTime()}-${Math.random().toString(36).slice(2, 8)}`,
     purchaseType, username, itemName, accountUsername:purchaseType === 'account' ? accountUsername : null, robuxAmount:purchaseType === 'robux' ? robuxAmount : null, paymentMethod, robuxCost:paymentMethod === 'robux' ? robuxCost : null, rap:purchaseType === 'limited' ? rap : null, purchasePrice, rate,
@@ -133,7 +134,7 @@ export function createLimitedPurchase(input, now = new Date()) {
     robuxSell70:estimatedRobuxSell,
     estimatedRevenue,
     minimumRobuxSell:purchaseType === 'limited' ? Math.ceil(purchasePrice / rate) : null,
-    profitEstimate:purchaseType === 'limited' ? estimatedRevenue - purchasePrice : null,
+    profitEstimate:purchaseType === 'limited' ? estimatedRevenue - purchasePrice : expenseOnly ? -purchasePrice : null,
     createdAt:now.toISOString()
   };
 }

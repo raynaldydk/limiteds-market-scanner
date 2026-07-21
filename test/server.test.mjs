@@ -138,7 +138,7 @@ test('stores a subscription with only account, price, and date', () => {
   assert.equal(purchase.username, 'Subscriber');
   assert.equal(purchase.itemName, 'Roblox Plus');
   assert.equal(purchase.rap, null);
-  assert.equal(purchase.profitEstimate, null);
+  assert.equal(purchase.profitEstimate, -75000);
 });
 
 test('expires Roblox Plus after 30 days', () => {
@@ -153,6 +153,7 @@ test('adds a Robux purchase to its Account Manager balance', () => {
   const purchase = createLimitedPurchase({ purchaseType:'robux', username:'Buyer', robuxAmount:1000, purchasePrice:135000, rate:135, purchasedAt:'2026-07-21T12:00:00Z' });
   assert.equal(purchase.itemName, '1,000 Robux');
   assert.equal(purchase.robuxAmount, 1000);
+  assert.equal(purchase.profitEstimate, -135000);
   const result = applyPurchaseToAccounts([{username:'Buyer',robux:250}], purchase);
   assert.equal(result.updatedAccount.robux, 1250);
 });
@@ -162,6 +163,7 @@ test('adds a purchased Roblox account to Account Manager', () => {
   const publicAccount = {robloxUserId:'999',username:'NewOwner',displayName:'New Owner',avatarUrl:'avatar.png',profileUrl:'profile',limitedItems:['Hat'],limitedRapTotal:1234};
   const result = applyPurchaseToAccounts([], purchase, publicAccount);
   assert.equal(purchase.itemName, 'NewOwner Account');
+  assert.equal(purchase.profitEstimate, -500000);
   assert.equal(result.updatedAccount.id, 'roblox-999');
   assert.equal(result.updatedAccount.limitedRapTotal, 1234);
   assert.equal(result.updatedAccount.robux, 0);
