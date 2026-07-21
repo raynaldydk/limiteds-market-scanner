@@ -32,6 +32,8 @@ The Account Manager persists records as formatted JSON in `data/accounts.json` t
 
 The client calculates the combined Estimated Robux card as the sum of `ROUND(0.7 x limitedRapTotal) + robux + robuxPending` for every saved account.
 
+Executive purchase spending normally uses `purchasePrice`. A completed purchase may preserve its original price while providing `businessCostIdr` and `personalCostAllocationIdr`; reporting then uses `businessCostIdr` so owner consumption does not reduce operating performance or Net Cash Flow.
+
 Each account row shows `limitedToRobux = ROUND(0.7 x limitedRapTotal)`. Quota is rendered as `estimatedAccountRobux / remainingSendLimit`, where `estimatedAccountRobux = limitedToRobux + robux + robuxPending` and `remainingSendLimit = MAX(0, sendLimit - sendLimitUsed)`.
 
 The selected Account Manager Robux Sell Rate (130, 135, or 140) is stored under `limiteds-market-account-sell-rate`. The Estimated IDR card is `Estimated Robux x selected rate` and re-renders immediately when the selector changes.

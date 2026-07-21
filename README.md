@@ -26,7 +26,7 @@ The server binds to `127.0.0.1` by default.
 
 ## Executive Summary
 
-The Executive Summary combines Account Manager, Buying, and Sell Robux data. It reports account count and Plus status, Limiteds RAP, estimated Robux, portfolio IDR, purchase spending, sales revenue, net cash flow, liquid and pending Robux, account-level portfolio contribution with a Grand Total row, purchase mix, and the latest ten activities. `Estimated Robux = ROUND(70% x RAP) + Robux + Pending` per account. Parent accounts carry an asset value of Rp15,000. Other accounts with a send limit of at least 10,000 carry Rp25,000; lower-limit accounts, including 1,000, carry Rp0. `Portfolio IDR = Estimated Robux x selected rate + Account Asset IDR`, and `Net Cash Flow = Robux sales revenue - purchase spending`.
+The Executive Summary combines Account Manager, Buying, and Sell Robux data. It reports account count and Plus status, Limiteds RAP, estimated Robux, portfolio IDR, purchase spending, sales revenue, net cash flow, liquid and pending Robux, account-level portfolio contribution with a Grand Total row, purchase mix, and the latest ten activities. `Estimated Robux = ROUND(70% x RAP) + Robux + Pending` per account. Parent accounts carry an asset value of Rp15,000. Other accounts with a send limit of at least 10,000 carry Rp25,000; lower-limit accounts, including 1,000, carry Rp0. `Portfolio IDR = Estimated Robux x selected rate + Account Asset IDR`, and `Net Cash Flow = Robux sales revenue - business purchase spending`. When a completed purchase contains `businessCostIdr`, personal-use cost is excluded from Total Spending, Purchase Mix, Recent Activity, and Net Cash Flow while the original purchase price remains preserved in the record.
 
 ## Scan & Analysis
 
