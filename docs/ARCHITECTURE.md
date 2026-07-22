@@ -34,6 +34,10 @@ The client calculates the combined Estimated Robux card as the sum of `ROUND(0.7
 
 Executive purchase spending normally uses `purchasePrice`. A completed purchase may preserve its original price while providing `businessCostIdr` and `personalCostAllocationIdr`; reporting then uses `businessCostIdr` so owner consumption does not reduce operating performance or Net Cash Flow.
 
+The Executive Summary period filter operates in the browser's local calendar timezone. All Time, Date, Month, and Year modes filter Buying and Sell Robux transactions before calculating spending, revenue, cash flow, purchase mix, and recent activity. Historical modes also select snapshots from `data/account-snapshots.json`, use the latest matching snapshot as the closing account state, and calculate opening, average, and portfolio change at the currently selected valuation rate. All Time uses live Account Manager state.
+
+`POST /api/account-snapshots` reads current accounts and captures their RAP, balance, pending, Plus status, estimated Robux, account asset value, and portfolio IDR. Automatic snapshots use Jakarta date keys and replace the prior automatic record for that day; manual snapshots are always retained. `GET /api/account-snapshots` returns the history. Account Manager calls automatic capture after a successful inventory refresh and exposes **Save Snapshot** for manual capture. The snapshot file is excluded from Git because it contains private account history.
+
 Each account row shows `limitedToRobux = ROUND(0.7 x limitedRapTotal)`. Quota is rendered as `estimatedAccountRobux / remainingSendLimit`, where `estimatedAccountRobux = limitedToRobux + robux + robuxPending` and `remainingSendLimit = MAX(0, sendLimit - sendLimitUsed)`.
 
 The selected Account Manager Robux Sell Rate (130, 135, or 140) is stored under `limiteds-market-account-sell-rate`. The Estimated IDR card is `Estimated Robux x selected rate` and re-renders immediately when the selector changes.
