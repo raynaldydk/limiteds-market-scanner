@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyPlusExpirations, applyPurchaseToAccounts, applyRobuxSale, calculateAccountAssetValue, calculateAverageDailySales, calculateRobuxSell, clearCache, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, scanAll } from '../server.mjs';
+import { applyPlusExpirations, applyPurchaseToAccounts, applyRobuxSale, calculateAccountAssetValue, calculateAverageDailySales, calculateRobuxSell, clearCache, createAccountSnapshot, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, scanAll, upsertAccountSnapshot } from '../server.mjs';
 
 test('scans all pages and calculates metrics', async () => {
   clearCache(); let calls = 0;
@@ -182,6 +182,16 @@ test('values accounts as assets from their send limit tier', () => {
   assert.equal(calculateAccountAssetValue(1000), 0);
   assert.equal(calculateAccountAssetValue(1000, true), 15000);
   assert.equal(calculateAccountAssetValue(10000, true), 15000);
+});
+
+test('creates portfolio snapshots and replaces only the automatic daily snapshot', () => {
+  const account={username:'Owner',limitedRapTotal:10000,robux:100,robuxPending:50,sendLimit:10000,parent:false,plusStatus:'active'};
+  const first=createAccountSnapshot([account],130,false,new Date('2026-07-22T01:00:00Z'));
+  assert.equal(first.totalEstimatedRobux,7150);assert.equal(first.totalPortfolioIdr,954500);assert.equal(first.dateKey,'2026-07-22');
+  const manual=createAccountSnapshot([account],130,true,new Date('2026-07-22T02:00:00Z'));
+  const replacement=createAccountSnapshot([{...account,robux:200}],130,false,new Date('2026-07-22T03:00:00Z'));
+  const snapshots=upsertAccountSnapshot(upsertAccountSnapshot([first],manual),replacement);
+  assert.equal(snapshots.length,2);assert.equal(snapshots.filter(item=>item.manual).length,1);assert.equal(snapshots[0].totalEstimatedRobux,7250);
 });
 
 test('marks sssssssel6 as underage when purchasing the account', () => {

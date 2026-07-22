@@ -9,6 +9,7 @@ const ROOT = fileURLToPath(new URL('./static/', import.meta.url));
 const ACCOUNT_DATA_PATH = fileURLToPath(new URL('./data/accounts.json', import.meta.url));
 const ROBUX_SALES_PATH = fileURLToPath(new URL('./data/robux-sales.json', import.meta.url));
 const LIMITED_PURCHASES_PATH = fileURLToPath(new URL('./data/limited-purchases.json', import.meta.url));
+const ACCOUNT_SNAPSHOTS_PATH = fileURLToPath(new URL('./data/account-snapshots.json', import.meta.url));
 const SELLER_MAP_PATH = fileURLToPath(new URL('./data/seller-map.json', import.meta.url));
 const CACHE_TTL = Number(process.env.CACHE_TTL_SECONDS || 30) * 1000;
 const cache = { at: 0, items: [] };
@@ -88,6 +89,16 @@ async function writeLimitedPurchases(purchases) {
   await writeFile(LIMITED_PURCHASES_PATH, `${JSON.stringify(purchases, null, 2)}\n`, 'utf8');
 }
 
+async function readAccountSnapshots() {
+  try { const snapshots=JSON.parse(await readFile(ACCOUNT_SNAPSHOTS_PATH,'utf8'));return Array.isArray(snapshots)?snapshots:[]; }
+  catch(error){if(error.code==='ENOENT')return [];throw error;}
+}
+
+async function writeAccountSnapshots(snapshots) {
+  await mkdir(fileURLToPath(new URL('./data/',import.meta.url)),{recursive:true});
+  await writeFile(ACCOUNT_SNAPSHOTS_PATH,`${JSON.stringify(snapshots,null,2)}\n`,'utf8');
+}
+
 export function applyPlusExpirations(accounts, now = new Date()) {
   let changed = false;
   const updated = accounts.map(account => {
@@ -102,6 +113,25 @@ export function applyPlusExpirations(accounts, now = new Date()) {
 export function calculateAccountAssetValue(sendLimit, parent = false) {
   if (parent === true) return 15000;
   return Math.max(0, Math.round(Number(sendLimit) || 0)) >= 10000 ? 25000 : 0;
+}
+
+function jakartaDateKey(value) {
+  const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));
+  const get=type=>parts.find(part=>part.type===type)?.value;
+  return `${get('year')}-${get('month')}-${get('day')}`;
+}
+
+export function createAccountSnapshot(accounts, rate = 130, manual = false, now = new Date()) {
+  const valuationRate=Number(rate);
+  if (![130,135,140].includes(valuationRate)) throw new Error('Snapshot rate must be 130, 135, or 140');
+  const capturedAt=now.toISOString();
+  const rows=accounts.map(account=>{const limitedRapTotal=Math.max(0,Math.round(Number(account.limitedRapTotal)||0)),robux=Math.max(0,Math.round(Number(account.robux)||0)),robuxPending=Math.max(0,Math.round(Number(account.robuxPending)||0)),estimatedRobux=Math.round(limitedRapTotal*0.7)+robux+robuxPending,assetIdr=calculateAccountAssetValue(account.sendLimit,account.parent===true);return {username:account.username,plusStatus:account.plusStatus||'inactive',limitedRapTotal,robux,robuxPending,estimatedRobux,assetIdr,portfolioIdr:estimatedRobux*valuationRate+assetIdr};});
+  return {id:`snapshot-${now.getTime()}-${Math.random().toString(36).slice(2,8)}`,capturedAt,dateKey:jakartaDateKey(now),manual:manual===true,rate:valuationRate,accounts:rows,totalRap:rows.reduce((sum,row)=>sum+row.limitedRapTotal,0),totalEstimatedRobux:rows.reduce((sum,row)=>sum+row.estimatedRobux,0),totalAssetIdr:rows.reduce((sum,row)=>sum+row.assetIdr,0),totalPortfolioIdr:rows.reduce((sum,row)=>sum+row.portfolioIdr,0)};
+}
+
+export function upsertAccountSnapshot(snapshots, snapshot) {
+  if (snapshot.manual) return [snapshot,...snapshots];
+  return [snapshot,...snapshots.filter(item=>item.manual===true||item.dateKey!==snapshot.dateKey)];
 }
 
 export function createLimitedPurchase(input, now = new Date()) {
@@ -472,6 +502,17 @@ export const server = createServer(async (req, res) => {
       await writeAccounts(body.accounts);
       return json(res, 200, { saved:true, count:body.accounts.length });
     } catch (error) { return json(res, 400, { error:`Account data could not be saved: ${error.message}` }); }
+  }
+  if (url.pathname === '/api/account-snapshots' && req.method === 'GET') {
+    try { return json(res,200,{snapshots:await readAccountSnapshots()}); }
+    catch(error){return json(res,500,{error:`Account snapshots could not be read: ${error.message}`});}
+  }
+  if (url.pathname === '/api/account-snapshots' && req.method === 'POST') {
+    try {
+      const body=await requestJson(req),snapshot=createAccountSnapshot(await readAccounts(),body.rate,body.manual===true),snapshots=await readAccountSnapshots();
+      const updated=upsertAccountSnapshot(snapshots,snapshot);await writeAccountSnapshots(updated);
+      return json(res,201,{snapshot,count:updated.length});
+    } catch(error){return json(res,400,{error:`Account snapshot could not be saved: ${error.message}`});}
   }
   if (url.pathname === '/api/robux-sales' && req.method === 'GET') {
     try { return json(res, 200, { sales:await readRobuxSales() }); }

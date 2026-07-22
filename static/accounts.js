@@ -27,6 +27,13 @@ async function saveAccounts() {
   }
 }
 
+async function captureSnapshot(manual = false) {
+  const response=await fetch('/api/account-snapshots',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({rate:Number(byId('accountSellRate').value),manual})});
+  const data=await response.json();
+  if(!response.ok)throw new Error(data.error||'Portfolio snapshot could not be saved');
+  return data.snapshot;
+}
+
 async function loadStoredAccounts() {
   const browserBackup = accounts;
   try {
@@ -76,7 +83,7 @@ async function refreshInventories(automatic = false) {
     } catch (error) { failed.push(`${account.username}: ${error.message}`); }
   }
   try {
-    if (refreshed) await saveAccounts();
+    if (refreshed) { await saveAccounts(); await captureSnapshot(false); }
     status.textContent = failed.length
       ? `Refreshed ${refreshed}/${accounts.length}. Failed: ${failed.join('; ')}`
       : `Inventory refreshed for ${refreshed} account${refreshed === 1 ? '' : 's'}.`;
@@ -211,6 +218,12 @@ async function syncPublicAccount(username) {
 
 byId('addAccount').addEventListener('click', () => { byId('usernameForm').reset(); byId('usernameDialog').showModal(); byId('lookupUsername').focus(); });
 byId('refreshInventory').addEventListener('click', () => refreshInventories(false));
+byId('saveSnapshot').addEventListener('click', async () => {
+  const status=byId('connectionStatus'),button=byId('saveSnapshot');button.disabled=true;
+  try{const snapshot=await captureSnapshot(true);status.hidden=false;status.textContent=`Portfolio snapshot saved for ${formatDateOnly(snapshot.capturedAt)}.`;status.className='connection-status success';}
+  catch(error){status.hidden=false;status.textContent=error.message;status.className='connection-status error';}
+  finally{button.disabled=false;}
+});
 byId('usernameForm').addEventListener('submit', event => { event.preventDefault(); syncPublicAccount(byId('lookupUsername').value.trim()); });
 byId('closeUsernameDialog').addEventListener('click', () => byId('usernameDialog').close());
 byId('cancelUsername').addEventListener('click', () => byId('usernameDialog').close());
