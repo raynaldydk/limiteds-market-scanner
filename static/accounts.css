@@ -17,6 +17,10 @@ html[data-theme="dark"] .rate-card select { border-color: #4a5664; background: #
 .accounts-table th { width: auto; white-space: nowrap; overflow-wrap: normal; }
 .accounts-table th:first-child,
 .accounts-table td:first-child { min-width: 150px; white-space: nowrap; }
+.accounts-table tbody tr[draggable="true"] { cursor: grab; }
+.accounts-table tbody tr[draggable="true"]:active { cursor: grabbing; }
+.accounts-table tbody tr.dragging { opacity: .4; }
+.accounts-table tbody tr.drag-over td { border-top: 2px solid var(--accent); }
 .limited-items { max-width: 280px; white-space: normal; word-break: normal; overflow-wrap: normal; line-height: 1.45; }
 .quota { white-space: nowrap; font-weight: 700; }
 .row-actions { display: inline-flex; align-items: center; gap: 5px; white-space: nowrap; }
