@@ -19,10 +19,15 @@ Open:
 - Calculator: <http://127.0.0.1:8000/calculator.html>
 - Account Manager: <http://127.0.0.1:8000/accounts.html>
 - Executive Summary: <http://127.0.0.1:8000/executive-summary.html>
+- Report Statement: <http://127.0.0.1:8000/report-statement.html>
 - Sell Robux: <http://127.0.0.1:8000/sell-robux.html>
 - Buying: <http://127.0.0.1:8000/limited-buying.html>
 
 The server binds to `127.0.0.1` by default.
+
+## Report Statement
+
+The Report Statement presents recorded Robux sales revenue, business spending by purchase type, net cash flow, ending portfolio value, and a supporting transaction schedule. Presets cover this month, last month, this year, and all time, with custom start and end dates also available. The ending position uses the latest portfolio snapshot on or before the selected end date when available; otherwise it uses current Account Manager balances. The selected Robux valuation rate is applied to 70% of Limiteds RAP, liquid Robux, and pending Robux. A print action produces a clean management statement.
 
 ## Executive Summary
 
