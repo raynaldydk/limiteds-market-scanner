@@ -24,7 +24,7 @@
 
     <header>
       <div><p class="eyebrow">LOCAL RECORDS</p><h1>Account Manager</h1><p class="subtitle">Track Roblox account inventory and Robux transfer limits.</p></div>
-      <div class="header-actions"><button id="saveSnapshot" class="secondary" type="button">Save Snapshot</button><button id="refreshInventory" class="secondary" type="button">Refresh Inventory</button><button id="addAccount" type="button">Add account by username</button></div>
+      <div class="header-actions"><button id="saveSnapshot" class="secondary" type="button">Save Snapshot</button><button id="refreshInventory" class="secondary" type="button">Refresh Inventory</button><button id="addCommunity" class="secondary" type="button">Add community</button><button id="addAccount" type="button">Add account by username</button></div>
     </header>
 
     <section class="account-summary">
@@ -78,6 +78,21 @@
       <div class="account-fields"><label class="wide">Roblox Username <input id="lookupUsername" required autocomplete="off" placeholder="Enter exact username"></label></div>
       <p class="form-note">The avatar and public limited inventory will be retrieved automatically.</p>
       <div class="dialog-actions"><button id="cancelUsername" class="secondary" type="button">Cancel</button><button id="lookupAccount" type="submit">Find account</button></div>
+    </form>
+  </dialog>
+
+  <dialog id="communityDialog">
+    <form id="communityForm">
+      <div class="dialog-heading"><h2 id="communityDialogTitle">Add community</h2><button id="closeCommunityDialog" class="icon-button secondary" type="button" aria-label="Close">×</button></div>
+      <input id="communityRecordId" type="hidden">
+      <div class="account-fields">
+        <label class="wide">Community Name <input id="communityName" required autocomplete="off" placeholder="Enter Roblox community name"></label>
+        <label class="wide">Community ID <input id="communityId" inputmode="numeric" pattern="[0-9]*" autocomplete="off" placeholder="Optional numeric ID"></label>
+        <label>Group Robux <input id="communityRobux" type="number" min="0" step="1" value="0"></label>
+        <label>Pending Robux <input id="communityPending" type="number" min="0" step="1" value="0"></label>
+      </div>
+      <p class="form-note">Enter balances manually. Roblox does not expose community funds or pending revenue through its public API.</p>
+      <div class="dialog-actions"><button id="cancelCommunity" class="secondary" type="button">Cancel</button><button type="submit">Save community</button></div>
     </form>
   </dialog>
 

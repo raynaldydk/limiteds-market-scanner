@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyPlusExpirations, applyPurchaseToAccounts, applyRobuxSale, calculateAccountAssetValue, calculateAverageDailySales, calculateRobuxSell, clearCache, createAccountSnapshot, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, scanAll, upsertAccountSnapshot } from '../server.mjs';
+import { applyPlusExpirations, applyPurchaseToAccounts, applyRobuxSale, calculateAccountAssetValue, calculateAverageDailySales, calculateRobuxSell, clearCache, createAccountSnapshot, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, fetchRobloxCommunityIcon, scanAll, upsertAccountSnapshot } from '../server.mjs';
 
 test('scans all pages and calculates metrics', async () => {
   clearCache(); let calls = 0;
@@ -105,6 +105,16 @@ test('resolves a public Roblox account and collectible inventory by username', a
   assert.equal(account.avatarUrl, 'https://tr.rbxcdn.com/avatar.png');
   assert.deepEqual(account.limitedItems, ['Limited One','Limited Two']);
   assert.equal(account.limitedRapTotal, 3500);
+});
+
+test('resolves a public Roblox community icon by ID', async () => {
+  const fetcher = async url => {
+    assert.match(url, /groupIds=123/);
+    return {ok:true,json:async()=>({data:[{targetId:123,state:'Completed',imageUrl:'https://tr.rbxcdn.com/community.png'}]})};
+  };
+  const result = await fetchRobloxCommunityIcon('123', fetcher);
+  assert.equal(result.iconUrl, 'https://tr.rbxcdn.com/community.png');
+  assert.rejects(() => fetchRobloxCommunityIcon('not-an-id', fetcher), /numeric/);
 });
 
 test('applies a Robux sale to balance and send-limit usage', () => {
