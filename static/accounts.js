@@ -5,6 +5,12 @@ const integer = value => Math.max(0, Math.round(Number(value) || 0));
 const formatNumber = value => new Intl.NumberFormat('en-US').format(value);
 const formatIdr = value => new Intl.NumberFormat('id-ID', { style:'currency', currency:'IDR', maximumFractionDigits:0 }).format(value);
 const formatDateOnly = value => value ? new Intl.DateTimeFormat('en-GB').format(new Date(value)) : '';
+const formatDateInput = value => {
+  if (!value) return '';
+  const date = new Date(value);
+  const part = type => new Intl.DateTimeFormat('en-CA', { year:'numeric', month:'2-digit', day:'2-digit' }).formatToParts(date).find(item => item.type === type)?.value;
+  return `${part('year')}-${part('month')}-${part('day')}`;
+};
 const isUnderage = account => String(account.username || '').toLocaleLowerCase() === 'sssssssel6' || account.underage === true;
 const isCommunity = account => account?.type === 'community';
 const accountAssetValue = account => account.parent === true ? 15000 : integer(account.sendLimit) >= 10000 ? 25000 : 0;
@@ -171,7 +177,7 @@ function render() {
       <td class="num">${formatNumber(integer(account.sendLimitUsed))}</td>
       <td class="num">${formatIdr(accountAssetValue(account))}</td>
       <td class="num quota">${formatNumber(quotaRobux)} / ${formatNumber(remainingSendLimit)}</td>
-      <td>${community ? '—' : `<span class="account-status ${account.plusStatus === 'active' ? 'active' : ''}">${account.plusStatus === 'active' ? 'Active' : 'Inactive'}</span>${account.plusExpiresAt ? `<small class="plus-expiry">Until ${formatDateOnly(account.plusExpiresAt)}</small>` : ''}`}</td>
+      <td>${community ? '—' : `<span class="account-status ${account.plusStatus === 'active' ? 'active' : ''}">${account.plusStatus === 'active' ? 'Active' : 'Inactive'}</span>${account.plusPurchasedAt ? `<small class="plus-expiry">Since ${formatDateOnly(account.plusPurchasedAt)}</small>` : ''}${account.plusExpiresAt ? `<small class="plus-expiry">Until ${formatDateOnly(account.plusExpiresAt)}</small>` : ''}`}</td>
       <td>${community ? '—' : `<span class="underage-status ${isUnderage(account) ? 'true' : 'false'}">${isUnderage(account) ? 'True' : 'False'}</span>`}</td>
       <td>${community ? '—' : `<span class="parent-status ${account.parent === true ? 'true' : 'false'}">${account.parent === true ? 'True' : 'False'}</span>`}</td>
       <td><div class="row-actions"><button class="edit-account secondary" data-id="${escapeHtml(account.id)}" type="button">Edit</button><button class="delete-account secondary" data-id="${escapeHtml(account.id)}" type="button">Delete</button></div></td>
@@ -191,6 +197,7 @@ function openDialog(account) {
   byId('sendLimit').value = integer(account?.sendLimit);
   byId('sendLimitUsed').value = integer(account?.sendLimitUsed);
   byId('plusStatus').value = account?.plusStatus || 'inactive';
+  byId('plusPurchasedAt').value = formatDateInput(account?.plusPurchasedAt);
   byId('underage').value = isUnderage(account) ? 'true' : 'false';
   byId('parent').value = account?.parent === true ? 'true' : 'false';
   byId('accountDialog').showModal();
@@ -213,11 +220,15 @@ byId('accountForm').addEventListener('submit', event => {
   event.preventDefault();
   const id = byId('accountId').value;
   const existing = accounts.find(item => item.id === id) || {};
+  const plusDate = byId('plusPurchasedAt').value;
+  const plusPurchasedAt = plusDate ? new Date(`${plusDate}T00:00:00`).toISOString() : null;
+  const plusExpiresAt = plusPurchasedAt ? new Date(new Date(plusPurchasedAt).getTime() + 30 * 24 * 60 * 60 * 1000).toISOString() : null;
   const account = {
     ...existing, id, username:byId('username').value.trim(), avatarUrl:byId('avatarUrl').value.trim(),
     limitedItems:byId('limitedItems').value.trim(), robux:integer(byId('robux').value), robuxPending:integer(byId('robuxPending').value),
     sendLimit:integer(byId('sendLimit').value), sendLimitUsed:integer(byId('sendLimitUsed').value),
-    plusStatus:byId('plusStatus').value, underage:byId('underage').value === 'true', parent:byId('parent').value === 'true'
+    plusStatus:byId('plusStatus').value, plusPurchasedAt, plusExpiresAt,
+    underage:byId('underage').value === 'true', parent:byId('parent').value === 'true'
   };
   const index = accounts.findIndex(item => item.id === id);
   if (index >= 0) accounts[index] = account;
