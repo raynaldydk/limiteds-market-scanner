@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Report Statement | Limiteds Market Scanner</title>
+  <link rel="stylesheet" href="/styles.css">
+  <link rel="stylesheet" href="/rap.css">
+  <link rel="stylesheet" href="/report-statement.css">
+  <script src="/theme.js"></script>
+</head>
+<body>
+  <main>
+    <nav class="page-nav" aria-label="Main navigation">
+      <a href="/accounts.html">Account Manager</a><a href="/">Scan &amp; Analysis</a><a href="/calculator.html">Calculator</a><a href="/limited-buying.html">Buying</a><a href="/sell-robux.html">Sell Robux</a><a href="/executive-summary.html">Executive Summary</a><a class="active" href="/report-statement.html">Report Statement</a>
+      <button class="theme-toggle secondary" type="button" aria-label="Switch color theme">Dark mode</button>
+    </nav>
+    <header>
+      <div><p class="eyebrow">FINANCIAL REPORT</p><h1>Report Statement</h1><p class="subtitle">Revenue, business spending, cash flow, and portfolio position.</p></div>
+      <div class="statement-controls">
+        <label>Period <select id="periodPreset"><option value="month">This Month</option><option value="lastMonth">Last Month</option><option value="year">This Year</option><option value="all">All Time</option><option value="custom">Custom</option></select></label>
+        <label>From <input id="dateFrom" type="date"></label><label>To <input id="dateTo" type="date"></label>
+        <label>Rate <select id="statementRate"><option value="130">130</option><option value="135">135</option><option value="140">140</option></select></label>
+        <button id="printStatement" class="secondary" type="button">Print</button>
+      </div>
+    </header>
+    <p id="statementStatus" class="statement-status" hidden></p>
+    <section class="statement-meta"><div><span>Statement period</span><b id="statementPeriod">—</b></div><div><span>Prepared</span><b id="preparedAt">—</b></div><div><span>Valuation basis</span><b id="valuationBasis">—</b></div></section>
+    <section class="statement-layout">
+      <article class="statement-card">
+        <div class="statement-heading"><div><p class="eyebrow">OPERATING STATEMENT</p><h2>Revenue and Spending</h2></div><span id="transactionCount">0 transactions</span></div>
+        <table class="statement-table"><tbody id="operatingRows"></tbody><tfoot><tr><th>Net Cash Flow</th><th id="netCashFlow" class="num">Rp0</th></tr></tfoot></table>
+      </article>
+      <article class="statement-card">
+        <div class="statement-heading"><div><p class="eyebrow">FINANCIAL POSITION</p><h2>Ending Portfolio</h2></div><span id="positionAsOf">Current</span></div>
+        <table class="statement-table"><tbody id="positionRows"></tbody><tfoot><tr><th>Total Portfolio Value</th><th id="totalPortfolio" class="num">Rp0</th></tr></tfoot></table>
+      </article>
+      <article class="statement-card statement-ledger">
+        <div class="statement-heading"><div><p class="eyebrow">SUPPORTING SCHEDULE</p><h2>Transaction Detail</h2></div><span id="ledgerCount">0 entries</span></div>
+        <div class="statement-table-wrap"><table><thead><tr><th>Date</th><th>Type</th><th>Description</th><th>Account</th><th class="num">Amount</th></tr></thead><tbody id="statementLedger"></tbody></table></div>
+      </article>
+    </section>
+  </main>
+  <footer>This management statement uses recorded business cash movements and estimated portfolio values; it is not an audited financial statement.</footer>
+  <script src="/report-statement.js"></script>
+</body>
+</html>
