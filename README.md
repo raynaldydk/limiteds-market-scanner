@@ -99,7 +99,7 @@ The Account Manager includes a persistent Robux Sell Rate selector with 130, 135
 
 The Send Limit summary displays combined `Robux Send Limit Used / Robux Send Limit` across saved accounts.
 
-Each account row includes `Limited to Robux = ROUND(Limiteds RAP x 0.7)` and Quota displayed as `(Limited to Robux + Robux + Robux Pending) / (Robux Send Limit - Send Limit Used)`.
+Each account row includes `Limited to Robux = ROUND(Limiteds RAP x 0.7)` and Quota displayed as `(Robux + Robux Pending) / (Robux Send Limit - Send Limit Used)`.
 
 Account Manager automatically refreshes each saved account's public Roblox avatar, limited-item list, and Limiteds RAP when the page opens. The `Refresh Inventory` button runs the same refresh manually. Robux balances, pending Robux, send limits, usage, and Plus status are preserved.
 
