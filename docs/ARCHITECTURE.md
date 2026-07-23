@@ -38,7 +38,7 @@ The Executive Summary period filter operates in the browser's local calendar tim
 
 `POST /api/account-snapshots` reads current accounts and captures their RAP, balance, pending, Plus status, estimated Robux, account asset value, and portfolio IDR. Automatic snapshots use Jakarta date keys and replace the prior automatic record for that day; manual snapshots are always retained. `GET /api/account-snapshots` returns the history. Account Manager calls automatic capture after a successful inventory refresh and exposes **Save Snapshot** for manual capture. The snapshot file is excluded from Git because it contains private account history.
 
-Each account row shows `limitedToRobux = ROUND(0.7 x limitedRapTotal)`. Quota is rendered as `estimatedAccountRobux / remainingSendLimit`, where `estimatedAccountRobux = limitedToRobux + robux + robuxPending` and `remainingSendLimit = MAX(0, sendLimit - sendLimitUsed)`.
+Each account row shows `limitedToRobux = ROUND(0.7 x limitedRapTotal)`. Quota is rendered as `quotaRobux / remainingSendLimit`, where `quotaRobux = robux + robuxPending` and `remainingSendLimit = MAX(0, sendLimit - sendLimitUsed)`.
 
 The selected Account Manager Robux Sell Rate (130, 135, or 140) is stored under `limiteds-market-account-sell-rate`. The Estimated IDR card is `Estimated Robux x selected rate` and re-renders immediately when the selector changes.
 

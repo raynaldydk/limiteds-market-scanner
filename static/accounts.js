@@ -127,7 +127,7 @@ function render() {
   byId('accountsEmpty').hidden = accounts.length > 0;
   byId('accountsGrid').innerHTML = accounts.map(account => {
     const limitedToRobux = Math.round(integer(account.limitedRapTotal) * 0.7);
-    const estimatedAccountRobux = limitedToRobux + integer(account.robux) + integer(account.robuxPending);
+    const quotaRobux = integer(account.robux) + integer(account.robuxPending);
     const remainingSendLimit = Math.max(0, integer(account.sendLimit) - integer(account.sendLimitUsed));
     return `
     <tr>
@@ -141,7 +141,7 @@ function render() {
       <td class="num">${formatNumber(integer(account.sendLimit))}</td>
       <td class="num">${formatNumber(integer(account.sendLimitUsed))}</td>
       <td class="num">${formatIdr(accountAssetValue(account))}</td>
-      <td class="num quota">${formatNumber(estimatedAccountRobux)} / ${formatNumber(remainingSendLimit)}</td>
+      <td class="num quota">${formatNumber(quotaRobux)} / ${formatNumber(remainingSendLimit)}</td>
       <td><span class="account-status ${account.plusStatus === 'active' ? 'active' : ''}">${account.plusStatus === 'active' ? 'Active' : 'Inactive'}</span>${account.plusExpiresAt ? `<small class="plus-expiry">Until ${formatDateOnly(account.plusExpiresAt)}</small>` : ''}</td>
       <td><span class="underage-status ${isUnderage(account) ? 'true' : 'false'}">${isUnderage(account) ? 'True' : 'False'}</span></td>
       <td><span class="parent-status ${account.parent === true ? 'true' : 'false'}">${account.parent === true ? 'True' : 'False'}</span></td>
