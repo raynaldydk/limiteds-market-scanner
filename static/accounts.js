@@ -165,7 +165,7 @@ function render() {
       ? `<a class="community-link" href="https://www.roblox.com/communities/${escapeHtml(account.communityId)}" target="_blank" rel="noopener">Open community</a>`
       : account.avatarUrl ? `<div class="account-avatar"><img src="${escapeHtml(account.avatarUrl)}" alt="${escapeHtml(account.username)} avatar"><a class="profile-icon" href="${escapeHtml(account.profileUrl || `https://www.roblox.com/users/${account.robloxUserId}/profile`)}" target="_blank" rel="noopener" title="Open Roblox profile"><img src="https://www.roblox.com/favicon.ico" alt="Roblox"></a><a class="profile-icon" href="https://www.rolimons.com/player/${escapeHtml(account.robloxUserId)}" target="_blank" rel="noopener" title="Open Rolimon's profile"><img src="https://www.rolimons.com/favicon.ico" alt="Rolimon's"></a></div>` : '—';
     return `
-    <tr>
+    <tr draggable="true" data-record-id="${escapeHtml(account.id)}" title="Drag to reorder">
       <td><strong>${escapeHtml(account.username)}</strong>${community ? '<small class="record-type">Community</small>' : ''}</td>
       <td>${community && account.communityIconUrl ? `<a class="community-link" href="https://www.roblox.com/communities/${escapeHtml(account.communityId)}" target="_blank" rel="noopener" title="Open Roblox community"><img class="community-icon" src="${escapeHtml(account.communityIconUrl)}" alt="${escapeHtml(account.username)} icon"></a>` : identity}</td>
       <td class="limited-items">${formatLimitedItems(account.limitedItems) || '—'}</td>
@@ -245,6 +245,49 @@ byId('accountsGrid').addEventListener('click', event => {
   if (event.target.classList.contains('delete-account') && confirm('Delete this account record?')) {
     accounts = accounts.filter(account => account.id !== id); saveAccounts().catch(error => alert(error.message)); render();
   }
+});
+
+let draggedRecordId = null;
+
+byId('accountsGrid').addEventListener('dragstart', event => {
+  const row = event.target.closest('tr[data-record-id]');
+  if (!row) return;
+  draggedRecordId = row.dataset.recordId;
+  row.classList.add('dragging');
+  event.dataTransfer.effectAllowed = 'move';
+  event.dataTransfer.setData('text/plain', draggedRecordId);
+});
+
+byId('accountsGrid').addEventListener('dragover', event => {
+  const row = event.target.closest('tr[data-record-id]');
+  if (!row || row.dataset.recordId === draggedRecordId) return;
+  event.preventDefault();
+  event.dataTransfer.dropEffect = 'move';
+  byId('accountsGrid').querySelectorAll('.drag-over').forEach(item => item.classList.remove('drag-over'));
+  row.classList.add('drag-over');
+});
+
+byId('accountsGrid').addEventListener('drop', async event => {
+  const targetRow = event.target.closest('tr[data-record-id]');
+  if (!targetRow || !draggedRecordId || targetRow.dataset.recordId === draggedRecordId) return;
+  event.preventDefault();
+  const sourceIndex = accounts.findIndex(record => record.id === draggedRecordId);
+  const targetIndex = accounts.findIndex(record => record.id === targetRow.dataset.recordId);
+  if (sourceIndex < 0 || targetIndex < 0) return;
+  const [movedRecord] = accounts.splice(sourceIndex, 1);
+  accounts.splice(targetIndex, 0, movedRecord);
+  render();
+  try {
+    await saveAccounts();
+  } catch (error) {
+    alert(error.message);
+    await loadStoredAccounts();
+  }
+});
+
+byId('accountsGrid').addEventListener('dragend', () => {
+  draggedRecordId = null;
+  byId('accountsGrid').querySelectorAll('.dragging, .drag-over').forEach(row => row.classList.remove('dragging', 'drag-over'));
 });
 
 byId('communityForm').addEventListener('submit', async event => {
