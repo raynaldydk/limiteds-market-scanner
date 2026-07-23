@@ -30,6 +30,9 @@ html[data-theme="dark"] .rate-card select { border-color: #4a5664; background: #
 .parent-status.false { color: var(--muted); }
 .parent-status.true { color: var(--accent); }
 .plus-expiry { display:block; margin-top:5px; color:var(--muted); font-size:10px; white-space:nowrap; }
+.record-type { display:block; margin-top:4px; color:var(--accent); font-size:10px; font-weight:700; text-transform:uppercase; }
+.community-link { color:var(--accent); font-size:12px; font-weight:700; white-space:nowrap; }
+.community-icon { width:38px; height:38px; border-radius:4px; object-fit:cover; }
 .account-avatar { display: inline-flex; align-items: center; gap: 7px; }
 .account-avatar > img { width: 38px; height: 38px; border-radius: 50%; object-fit: cover; }
 .profile-icon { display: inline-flex; align-items: center; justify-content: center; width: 28px; height: 28px; border: 1px solid var(--line); border-radius: 3px; background: var(--paper); }

@@ -115,6 +115,15 @@ export function calculateAccountAssetValue(sendLimit, parent = false) {
   return Math.max(0, Math.round(Number(sendLimit) || 0)) >= 10000 ? 25000 : 0;
 }
 
+export async function fetchRobloxCommunityIcon(communityId, fetcher = fetch) {
+  const id = String(communityId || '').trim();
+  if (!/^\d+$/.test(id)) throw new Error('Roblox community ID must be numeric');
+  const result = await fetchJson(`https://thumbnails.roblox.com/v1/groups/icons?groupIds=${encodeURIComponent(id)}&size=150x150&format=Png&isCircular=false`, fetcher);
+  const icon = Array.isArray(result?.data) ? result.data.find(item => String(item.targetId) === id) || result.data[0] : null;
+  if (!icon?.imageUrl) throw new Error('Roblox community icon was not found');
+  return { communityId:id, iconUrl:icon.imageUrl };
+}
+
 function jakartaDateKey(value) {
   const parts=new Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Jakarta',year:'numeric',month:'2-digit',day:'2-digit'}).formatToParts(new Date(value));
   const get=type=>parts.find(part=>part.type===type)?.value;
@@ -486,6 +495,12 @@ export const server = createServer(async (req, res) => {
       const account = await fetchPublicRobloxAccount(username, fetch);
       return account ? json(res, 200, account) : json(res, 404, { error:'Roblox username was not found.' });
     } catch (error) { return json(res, 502, { error:`Roblox account lookup failed: ${error.message}` }); }
+  }
+  if (url.pathname === '/api/roblox/community-icon') {
+    try {
+      const icon = await fetchRobloxCommunityIcon(url.searchParams.get('communityId'), fetch);
+      return json(res, 200, icon);
+    } catch (error) { return json(res, 502, { error:`Roblox community icon lookup failed: ${error.message}` }); }
   }
   if (url.pathname === '/api/accounts' && req.method === 'GET') {
     try {
