@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { applyPlusExpirations, applyPurchaseToAccounts, applyRobuxSale, calculateAccountAssetValue, calculateAverageDailySales, calculateRobuxSell, clearCache, createAccountSnapshot, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, fetchRobloxCommunityIcon, scanAll, upsertAccountSnapshot } from '../server.mjs';
+import { applyPlusExpirations, applyPurchaseToAccounts, applyRobuxSale, calculateAccountAssetValue, calculateAverageDailySales, calculateRobuxSell, clearCache, createAccountSnapshot, createLimitedPurchase, fetchCurrentRap, fetchCurrentRapByName, fetchPublicRobloxAccount, fetchRobloxCommunityIcon, fetchRolimonsProjectedIds, scanAll, upsertAccountSnapshot } from '../server.mjs';
 
 test('scans all pages and calculates metrics', async () => {
   clearCache(); let calls = 0;
@@ -22,6 +22,18 @@ test('uses cache within TTL', async () => {
   const fetcher = async () => ({ ok:true, json:async()=>replies[calls++] });
   await scanAll(false, fetcher, false); const result = await scanAll(false, fetcher, false);
   assert.equal(result.cached, true); assert.equal(calls, 2);
+});
+
+test('reads projected item flags from Rolimons item details', async () => {
+  const fetcher = async url => {
+    assert.equal(url, 'https://www.rolimons.com/itemapi/itemdetails');
+    return { ok:true, json:async () => ({ items:{
+      42:['Projected Hat','PH',1000,1000,1000,2,1,1,0,0],
+      43:['Regular Hat','RH',1000,1000,1000,2,1,0,0,0]
+    } }) };
+  };
+  const projectedIds = await fetchRolimonsProjectedIds(fetcher);
+  assert.deepEqual([...projectedIds], ['42']);
 });
 
 test('gets current RAP for the exact official Roblox asset', async () => {

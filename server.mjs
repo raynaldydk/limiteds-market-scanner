@@ -15,6 +15,9 @@ const CACHE_TTL = Number(process.env.CACHE_TTL_SECONDS || 30) * 1000;
 const cache = { at: 0, items: [] };
 const currencyCache = { at: 0, idrRate: null };
 const CURRENCY_TTL = Number(process.env.CURRENCY_TTL_SECONDS || 3600) * 1000;
+const ROLIMONS_ITEMS_URL = 'https://www.rolimons.com/itemapi/itemdetails';
+const ROLIMONS_TTL = Number(process.env.ROLIMONS_TTL_SECONDS || 300) * 1000;
+const rolimonsCache = { at: 0, projectedIds: new Set() };
 const robloxData = new Map();
 const robloxQueue = [];
 const queuedNames = new Set();
@@ -41,6 +44,28 @@ async function fetchJson(url, fetcher = fetch) {
     await wait(750 * 2 ** attempt);
   }
   throw new Error('Roblox rate limit persisted');
+}
+
+export async function fetchRolimonsProjectedIds(fetcher = fetch) {
+  const response = await fetcher(ROLIMONS_ITEMS_URL, {
+    headers: { 'User-Agent':'LimitedsMarketScanner/1.0' },
+    signal: AbortSignal.timeout(20000)
+  });
+  if (!response.ok) throw new Error(`Rolimon's returned HTTP ${response.status}`);
+  const data = await response.json();
+  return new Set(Object.entries(data.items || {})
+    .filter(([, details]) => Array.isArray(details) && details[7] === 1)
+    .map(([assetId]) => String(assetId)));
+}
+
+async function updateRolimonsMetadata(force, fetcher) {
+  if (!force && rolimonsCache.at && Date.now() - rolimonsCache.at < ROLIMONS_TTL) return;
+  try {
+    rolimonsCache.projectedIds = await fetchRolimonsProjectedIds(fetcher);
+    rolimonsCache.at = Date.now();
+  } catch {
+    // This metadata is supplementary, so a Rolimon's outage must not fail a scan.
+  }
 }
 
 async function readAccounts() {
@@ -425,6 +450,7 @@ async function processRapQueue() {
 
 export async function scanAll(force = false, fetcher = fetch, updateRap = true, forceRap = false) {
   const now = Date.now();
+  if (updateRap) await updateRolimonsMetadata(force, fetcher);
   if (forceRap) {
     for (const value of robloxData.values()) value.checkedAt = 0;
   }
@@ -460,7 +486,7 @@ export async function scanAll(force = false, fetcher = fetch, updateRap = true, 
   return { items, cached: false };
 }
 
-export function clearCache() { cache.at = 0; cache.items = []; currencyCache.at = 0; currencyCache.idrRate = null; robloxData.clear(); robloxQueue.length = 0; queuedNames.clear(); categoryByName.clear(); }
+export function clearCache() { cache.at = 0; cache.items = []; currencyCache.at = 0; currencyCache.idrRate = null; rolimonsCache.at = 0; rolimonsCache.projectedIds.clear(); robloxData.clear(); robloxQueue.length = 0; queuedNames.clear(); categoryByName.clear(); }
 
 function applyCurrentRap(items) {
   for (const item of items) {
@@ -478,6 +504,9 @@ function applyCurrentRap(items) {
     item.rolimons_url = current?.bundleId
       ? `https://www.rolimons.com/bundle/${current.bundleId}`
       : current?.assetId ? `https://www.rolimons.com/item/${current.assetId}` : null;
+    item.rolimons_projected = current?.assetId
+      ? rolimonsCache.projectedIds.has(String(current.assetId))
+      : false;
     item.rap_checked_at = current?.checkedAt ? new Date(current.checkedAt).toISOString() : null;
     item.sales_30d = current?.sales30d ?? null;
     item.avg_daily_sales_30d = current?.avgDailySales30d ?? null;
