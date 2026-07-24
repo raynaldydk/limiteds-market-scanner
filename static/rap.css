@@ -55,6 +55,29 @@ button {
   color: var(--accent);
 }
 
+.projected-tag {
+  display: inline-flex;
+  flex: 0 0 auto;
+  width: 18px;
+  height: 16px;
+  align-items: center;
+  justify-content: center;
+  background: #ffd43b;
+  color: #4a3900;
+  clip-path: polygon(50% 0, 100% 100%, 0 100%);
+  font-size: 12px;
+  font-weight: 900;
+  line-height: 1;
+  padding-top: 4px;
+  box-sizing: border-box;
+  cursor: help;
+}
+
+html[data-theme="dark"] .projected-tag {
+  background: #ffd43b;
+  color: #332700;
+}
+
 .listing-icon {
   display: inline-flex;
   align-items: center;

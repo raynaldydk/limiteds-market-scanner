@@ -68,7 +68,7 @@ function render() {
   $('grid').innerHTML = visibleItems.map((x,i) => `
     <tr>
       <td class="rank">${i+1}</td>
-      <td><div class="item"><img src="${escapeHtml(x.thumbnail_url)}" alt="" loading="lazy"><div class="item-title">${x.roblox_url ? `<a class="item-name" href="${escapeHtml(x.roblox_url)}" target="_blank" rel="noopener">${escapeHtml(x.item_name)}</a>` : `<strong>${escapeHtml(x.item_name)}</strong>`}${x.rolimons_url ? `<a class="rolimons-link" href="${escapeHtml(x.rolimons_url)}" target="_blank" rel="noopener" title="Open on Rolimon's"><img src="https://www.rolimons.com/favicon.ico" alt="Rolimon's">↗</a>` : ''}</div></div></td>
+      <td><div class="item"><img src="${escapeHtml(x.thumbnail_url)}" alt="" loading="lazy"><div class="item-title">${x.roblox_url ? `<a class="item-name" href="${escapeHtml(x.roblox_url)}" target="_blank" rel="noopener">${escapeHtml(x.item_name)}</a>` : `<strong>${escapeHtml(x.item_name)}</strong>`}${x.rolimons_projected ? '<span class="projected-tag" role="img" aria-label="Projected on Rolimon\'s" title="Projected on Rolimon\'s">!</span>' : ''}${x.rolimons_url ? `<a class="rolimons-link" href="${escapeHtml(x.rolimons_url)}" target="_blank" rel="noopener" title="Open on Rolimon's"><img src="https://www.rolimons.com/favicon.ico" alt="Rolimon's">↗</a>` : ''}</div></div></td>
       <td class="seller-id" title="${escapeHtml(x.seller_id)}">${x.seller_internal_id ? `Seller ${number(x.seller_internal_id)}` : '—'}</td>
       <td class="num">${x.avg_daily_sales_30d == null ? '—' : x.avg_daily_sales_30d.toFixed(2)}</td>
       <td class="num">${x.rap == null ? `<span class="rap-state">${escapeHtml(x.rap_status)}</span>` : number(x.rap)}</td>
@@ -113,7 +113,7 @@ function updateSortHeaders() {
 }
 
 function exportCsv() {
-  const cols = ['item_name','seller_internal_id','seller_id','category','idr_rate','price_idr','after_tax_idr','market_rap','rap','robux_sell','robux_sell_rate','robux_sell_idr','profit_idr','profit_cost_ratio','sales_30d','avg_daily_sales_30d','rap_status','rap_checked_at','roblox_asset_id','roblox_collectible_item_id','idr_per_1k_rap','created_at','listing_url','roblox_url','rolimons_url'];
+  const cols = ['item_name','seller_internal_id','seller_id','category','idr_rate','price_idr','after_tax_idr','market_rap','rap','robux_sell','robux_sell_rate','robux_sell_idr','profit_idr','profit_cost_ratio','sales_30d','avg_daily_sales_30d','rap_status','rap_checked_at','roblox_asset_id','roblox_collectible_item_id','rolimons_projected','idr_per_1k_rap','created_at','listing_url','roblox_url','rolimons_url'];
   const sellRate = Number($('sellRate').value);
   const rows = visibleItems.map(x => { const profit = x.robux_sell == null ? null : x.robux_sell*sellRate-x.after_tax_idr; return {...x, robux_sell_rate:sellRate, robux_sell_idr:x.robux_sell == null ? null : x.robux_sell*sellRate, profit_idr:profit, profit_cost_ratio:profit == null || !x.after_tax_idr ? null : Math.round(profit/x.after_tax_idr*10000)/100}; });
   const quote = v => `"${String(v ?? '').replaceAll('"','""')}"`;
